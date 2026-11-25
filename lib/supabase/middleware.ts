@@ -1,3 +1,4 @@
+
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -64,14 +65,9 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  if (
-    !user &&
-    pathname !== '/login' &&
-    pathname !== '/diagnostic' &&
-    !pathname.startsWith('/auth/callback')
-  ) {
+  function redirectWithCookies(destination: string) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = destination;
     url.search = '';
 
     const redirectResponse = NextResponse.redirect(url);
@@ -83,18 +79,44 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && pathname === '/login') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    url.search = '';
+  // Pages accessibles sans connexion
+  const isPublicPage =
+    pathname === '/login' ||
+    pathname === '/diagnostic' ||
+    pathname.startsWith('/auth/callback');
 
-    const redirectResponse = NextResponse.redirect(url);
+  if (!user) {
+    if (isPublicPage) return response;
+    return redirectWithCookies('/login');
+  }
 
-    cookiesToSet.forEach(({ name, value, options }) => {
-      redirectResponse.cookies.set(name, value, options);
-    });
+  // Vérification du pseudo du joueur
+  if (!pathname.startsWith('/auth/callback') &&
+      pathname !== '/diagnostic') {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .maybeSingle();
 
-    return redirectResponse;
+    if (profileError) {
+      console.error('Erreur de lecture du profil :', profileError.message);
+      return response;
+    }
+
+    const hasUsername = !!profile?.username;
+
+    if (!hasUsername && pathname !== '/choisir-pseudo') {
+      return redirectWithCookies('/choisir-pseudo');
+    }
+
+    if (hasUsername && pathname === '/choisir-pseudo') {
+      return redirectWithCookies('/');
+    }
+
+    if (hasUsername && pathname === '/login') {
+      return redirectWithCookies('/');
+    }
   }
 
   return response;
