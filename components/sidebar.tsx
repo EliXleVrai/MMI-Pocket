@@ -4,6 +4,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import type { User } from '@supabase/supabase-js';
+
 import {
   Aperture,
   ArrowLeftRight,
@@ -16,7 +18,13 @@ import {
   UserRound,
   LogOut,
 } from 'lucide-react';
+
 import { createClient } from '@/lib/supabase/client';
+
+type PlayerProfile = {
+  username: string | null;
+  display_name: string | null;
+};
 
 const links = [
   { href: '/', label: 'Accueil', icon: House },
@@ -32,25 +40,35 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
+    let active = true;
 
     async function loadUser() {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
 
-      if (user) {
+      if (!active) return;
+
+      setUser(currentUser);
+
+      if (currentUser) {
         const { data } = await supabase
           .from('profiles')
           .select('username, display_name')
-          .eq('id', user.id)
-          .single();
+          .eq('id', currentUser.id)
+          .maybeSingle();
+
+        if (!active) return;
 
         setProfile(data);
+      } else {
+        setProfile(null);
       }
 
       setLoading(false);
@@ -58,12 +76,16 @@ export function Sidebar() {
 
     loadUser();
 
-    const { data: { subscription } } =
-      supabase.auth.onAuthStateChange(() => {
-        loadUser();
-      });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      loadUser();
+    });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function logout() {
@@ -80,10 +102,18 @@ export function Sidebar() {
     'Joueur';
 
   return (
-    <aside className={`sidebar ${pathname === '/login' ? 'sidebar-login-hidden' : ''}`}>
+    <aside
+      className={`sidebar ${
+        pathname === '/login' ? 'sidebar-login-hidden' : ''
+      }`}
+    >
       <Link href="/" className="brand">
-        <span className="brand-mark"><Aperture size={22} /></span>
-        <span>MMI<span className="brand-light">Pocket</span>
+        <span className="brand-mark">
+          <Aperture size={22} />
+        </span>
+
+        <span>
+          MMI<span className="brand-light">Pocket</span>
           <small>PROMO 2026 — 2029</small>
         </span>
       </Link>
@@ -95,29 +125,51 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
-            className={`nav-link ${pathname === href ? 'active' : ''}`}
+            className={`nav-link ${
+              pathname === href ? 'active' : ''
+            }`}
           >
             <Icon size={18} />
             {label}
-            {href === '/boosters' && <span className="nav-dot" />}
+            {href === '/boosters' && (
+              <span className="nav-dot" />
+            )}
           </Link>
         ))}
       </nav>
 
       <div className="sidebar-bottom">
         <div className="sidebar-promo">
-          <div className="promo-icon"><Sparkles size={18} /></div>
+          <div className="promo-icon">
+            <Sparkles size={18} />
+          </div>
+
           <strong>La collection MMI</strong>
-          <p>Chaque carte raconte un peu de notre promo.</p>
-          <span>Découvrir les extensions ↗</span>
+          <p>
+            Chaque carte raconte un peu de notre promo.
+          </p>
+
+          <span>
+            Découvrir les extensions ↗
+          </span>
         </div>
 
         <Link href="/profil" className="profile-link">
-          <span className="avatar"><UserRound size={17} /></span>
+          <span className="avatar">
+            <UserRound size={17} />
+          </span>
+
           <span>
-            <b>{loading ? 'Chargement...' : displayName}</b>
+            <b>
+              {loading ? 'Chargement...' : displayName}
+            </b>
+
             <small>
-              {loading ? ' ' : user ? 'Connecté' : 'Invité'}
+              {loading
+                ? ' '
+                : user
+                  ? 'Connecté'
+                  : 'Invité'}
             </small>
           </span>
         </Link>
