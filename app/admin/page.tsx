@@ -32,7 +32,7 @@ export default async function AdminPage() {
 
       <section className="profile-card">
         <h2>Bienvenue, @{profile.username}</h2>
-        <p>Tu es connecté en tant qu'administrateur.</p>
+        <p>Tu es connecté en tant qu&apos;administrateur.</p>
       </section>
 
       <CardCreator />
