@@ -5,7 +5,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function DiagnosticPage() {
-  const [result, setResult] = useState<any>(null);
+  type DiagnosticResult = {
+  session: boolean;
+  user: boolean;
+  email: string;
+  id: string;
+  profile: string;
+  profileError: string;
+};
+
+  const [result, setResult] = useState<DiagnosticResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   const check = useCallback(async () => {
