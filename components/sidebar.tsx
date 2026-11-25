@@ -16,7 +16,7 @@ const links = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  return <aside className="sidebar">
+  return <aside className={`sidebar ${pathname === '/login' ? 'sidebar-login-hidden' : ''}`}>
     <Link href="/" className="brand"><span className="brand-mark"><Aperture size={22}/></span><span>MMI<span className="brand-light">Pocket</span><small>PROMO 2026 — 2029</small></span></Link>
     <div className="nav-caption">JOUER</div>
     <nav>{links.map(({href,label,icon:Icon}) => <Link key={href} href={href} className={`nav-link ${pathname === href ? 'active' : ''}`}><Icon size={18}/>{label}{href === '/boosters' && <span className="nav-dot"/>}</Link>)}</nav>
