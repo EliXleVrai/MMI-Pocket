@@ -51,7 +51,7 @@ export default function DiagnosticPage() {
       profileError,
     });
 
-    setLoading(false);
+    setg(false);
   }, []);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function DiagnosticPage() {
     <main style={{ padding: 30, color: '#172033' }}>
       <h1>Diagnostic MMI Pocket</h1>
 
-      {loading ? <p>Vérification...</p> : (
+      {loading || !result ? <p>Vérification...</p> : (
         <>
           <p>Session : {result.session ? 'DÉTECTÉE' : 'ABSENTE'}</p>
           <p>Utilisateur Supabase : {result.user ? 'CONNECTÉ' : 'NON CONNECTÉ'}</p>
