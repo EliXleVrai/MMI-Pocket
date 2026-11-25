@@ -1,4 +1,3 @@
-
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
@@ -18,6 +17,7 @@ type CookieToSet = {
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const cookiesToSet: CookieToSet[] = [];
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -27,32 +27,43 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSet.forEach(({ name, value }) => {
-          request.cookies.set(name, value);
-        });
+  const supabase = createServerClient(
+    supabaseUrl,
+    supabaseKey,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
 
-        response = NextResponse.next({ request });
+        setAll(cookies) {
+          cookiesToSet.push(...cookies);
 
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
-        });
+          cookies.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+
+          response = NextResponse.next({ request });
+
+          cookies.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
+        },
       },
-    },
-  });
+    }
+  );
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error('Erreur de session Supabase :', error.message);
+  }
 
   const pathname = request.nextUrl.pathname;
 
-  // Un visiteur non connecté doit passer par la connexion.
   if (
     !user &&
     pathname !== '/login' &&
@@ -64,14 +75,13 @@ export async function updateSession(request: NextRequest) {
 
     const redirectResponse = NextResponse.redirect(url);
 
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie);
+    cookiesToSet.forEach(({ name, value, options }) => {
+      redirectResponse.cookies.set(name, value, options);
     });
 
     return redirectResponse;
   }
 
-  // Un utilisateur connecté n'a plus besoin de voir la connexion.
   if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
@@ -79,8 +89,8 @@ export async function updateSession(request: NextRequest) {
 
     const redirectResponse = NextResponse.redirect(url);
 
-    response.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie);
+    cookiesToSet.forEach(({ name, value, options }) => {
+      redirectResponse.cookies.set(name, value, options);
     });
 
     return redirectResponse;
