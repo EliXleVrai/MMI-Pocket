@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { Aperture, ArrowLeft } from 'lucide-react';
 import { LoginButtons } from '@/components/login-buttons';
@@ -8,7 +7,7 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-panel">
         <Link href="/" className="login-back">
-          <ArrowLeft size={15} /> Retour à l'accueil
+          <ArrowLeft size={15} /> Retour à l&apos;accueil
         </Link>
 
         <div className="login-brand">
