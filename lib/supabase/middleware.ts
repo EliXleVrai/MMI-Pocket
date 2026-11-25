@@ -67,6 +67,7 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     pathname !== '/login' &&
+    pathname !== '/diagnostic' &&
     !pathname.startsWith('/auth/callback')
   ) {
     const url = request.nextUrl.clone();
