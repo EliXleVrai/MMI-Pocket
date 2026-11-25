@@ -11,3 +11,23 @@
 .app-shell:has(.sidebar-login-hidden) .main-content {
   margin-left: 0;
 }
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #777;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logout-button:hover {
+  background: #f3f3f5;
+  color: #d44;
+}
