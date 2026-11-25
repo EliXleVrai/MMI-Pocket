@@ -51,7 +51,7 @@ export default function DiagnosticPage() {
       profileError,
     });
 
-    setg(false);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
