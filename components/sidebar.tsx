@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -17,6 +16,7 @@ import {
   Trophy,
   UserRound,
   LogOut,
+  Shield,
 } from 'lucide-react';
 
 import { createClient } from '@/lib/supabase/client';
@@ -24,6 +24,7 @@ import { createClient } from '@/lib/supabase/client';
 type PlayerProfile = {
   username: string | null;
   display_name: string | null;
+  role: string | null;
 };
 
 const links = [
@@ -60,7 +61,7 @@ export function Sidebar() {
       if (currentUser) {
         const { data } = await supabase
           .from('profiles')
-          .select('username, display_name')
+          .select('username, display_name, role')
           .eq('id', currentUser.id)
           .maybeSingle();
 
@@ -96,10 +97,13 @@ export function Sidebar() {
   }
 
   const displayName =
-    profile?.username ||
     profile?.display_name ||
+    profile?.username ||
     user?.email ||
     'Joueur';
+
+  const initial = displayName.charAt(0).toUpperCase();
+  const isAdmin = profile?.role === 'admin';
 
   return (
     <aside
@@ -131,11 +135,28 @@ export function Sidebar() {
           >
             <Icon size={18} />
             {label}
+
             {href === '/boosters' && (
               <span className="nav-dot" />
             )}
           </Link>
         ))}
+
+        {isAdmin && (
+          <>
+            <div className="nav-caption">ADMINISTRATION</div>
+
+            <Link
+              href="/admin"
+              className={`nav-link ${
+                pathname.startsWith('/admin') ? 'active' : ''
+              }`}
+            >
+              <Shield size={18} />
+              Administration
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="sidebar-bottom">
@@ -156,7 +177,11 @@ export function Sidebar() {
 
         <Link href="/profil" className="profile-link">
           <span className="avatar">
-            <UserRound size={17} />
+            {loading ? (
+              <UserRound size={17} />
+            ) : (
+              initial
+            )}
           </span>
 
           <span>
@@ -167,9 +192,11 @@ export function Sidebar() {
             <small>
               {loading
                 ? ' '
-                : user
-                  ? 'Connecté'
-                  : 'Invité'}
+                : isAdmin
+                  ? 'Administrateur'
+                  : user
+                    ? 'Joueur connecté'
+                    : 'Invité'}
             </small>
           </span>
         </Link>
