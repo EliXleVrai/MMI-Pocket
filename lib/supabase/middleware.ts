@@ -24,6 +24,7 @@ export async function updateSession(request: NextRequest) {
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
+
         setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
@@ -42,31 +43,28 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const pathname = request.nextUrl.pathname;
 
-  const isLogin = pathname === '/login';
-  const isCallback = pathname.startsWith('/auth/callback');
-
-  if (!user && !isLogin && !isCallback) {
+  if (!user && pathname !== '/login' && !pathname.startsWith('/auth/callback')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = '';
 
     const redirectResponse = NextResponse.redirect(url);
 
-    response.cookies.getAll().forEach((cookie) => {
+    response.cookies.getAll().forEach(cookie => {
       redirectResponse.cookies.set(cookie);
     });
 
     return redirectResponse;
   }
 
-  if (user && isLogin) {
+  if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     url.search = '';
 
     const redirectResponse = NextResponse.redirect(url);
 
-    response.cookies.getAll().forEach((cookie) => {
+    response.cookies.getAll().forEach(cookie => {
       redirectResponse.cookies.set(cookie);
     });
 
