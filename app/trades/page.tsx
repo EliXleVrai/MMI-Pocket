@@ -27,7 +27,7 @@ export default async function TradesPage() {
 
       <section className="profile-card">
         <h2>Aucun échange pour le moment</h2>
-        <p>Le système d'échange entre joueurs arrive bientôt !</p>
+        <p>Le système d&apos;échange entre joueurs arrive bientôt !</p>
       </section>
     </main>
   );
