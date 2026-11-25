@@ -2,6 +2,20 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: {
+    domain?: string;
+    expires?: Date;
+    httpOnly?: boolean;
+    maxAge?: number;
+    path?: string;
+    sameSite?: boolean | 'lax' | 'strict' | 'none';
+    secure?: boolean;
+  };
+};
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
