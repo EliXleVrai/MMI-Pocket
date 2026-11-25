@@ -23,8 +23,8 @@ export default async function ProfilePage() {
   }
 
   const { data: wallet } = await supabase
-    .from('wallets')
-    .select('*')
+    .from('player_wallets')
+    .select('coins, energy, max_energy')
     .eq('user_id', user.id)
     .maybeSingle();
 
