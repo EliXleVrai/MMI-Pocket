@@ -220,45 +220,108 @@ export default async function Home() {
       }));
     }
 
-    // ACTIVITÉ RÉCENTE : achats et ventes du marché
+    
+    // ACTIVITÉ RÉCENTE : boosters et marché en parallèle
 
-    const { data: marketSales } = await supabase
-      .from('market_sales')
-      .select(
-        'id, buyer_id, seller_id, card_id, quantity, total_amount, seller_earnings, sold_at'
-      )
-      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
-      .order('sold_at', { ascending: false })
-      .limit(10);
+    const [openingsResult, marketSalesResult] = await Promise.all([
+      supabase
+        .from('booster_openings')
+        .select('id, booster_id, energy_spent, opened_at')
+        .eq('user_id', user.id)
+        .order('opened_at', { ascending: false })
+        .limit(5),
 
-    if (marketSales && marketSales.length > 0) {
-      const cardIds = [
-        ...new Set(marketSales.map((sale) => sale.card_id)),
-      ];
+      supabase
+        .from('market_sales')
+        .select(
+          'id, buyer_id, seller_id, card_id, quantity, total_amount, seller_earnings, sold_at'
+        )
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+        .order('sold_at', { ascending: false })
+        .limit(10),
+    ]);
 
-      const { data: transactionCards } = await supabase
-        .from('cards')
-        .select('id, name')
-        .in('id', cardIds);
+    const openings = openingsResult.data ?? [];
+    const marketSales = marketSalesResult.data ?? [];
 
-      const cardNames = new Map(
-        (transactionCards ?? []).map((card) => [
-          card.id,
-          card.name,
-        ])
-      );
+    // Récupération des boosters et des cartes obtenues en parallèle
 
-      recentMarketTransactions = marketSales.map((sale) => ({
-        id: sale.id,
-        sold_at: sale.sold_at,
-        kind: sale.buyer_id === user.id ? 'purchase' : 'sale',
-        cardName: cardNames.get(sale.card_id) ?? 'Carte inconnue',
-        quantity: sale.quantity,
-        total_amount: sale.total_amount,
-        seller_earnings: sale.seller_earnings,
-      }));
-    }
-  }
+    const openingIds = openings.map((opening) => opening.id);
+
+    const boosterIds = [
+      ...new Set(openings.map((opening) => opening.booster_id)),
+    ];
+
+    const [boostersResult, openingCardsResult] = await Promise.all([
+      boosterIds.length > 0
+        ? supabase
+            .from('boosters')
+            .select('id, name')
+            .in('id', boosterIds)
+        : Promise.resolve({ data: [] }),
+
+      openingIds.length > 0
+        ? supabase
+            .from('booster_opening_cards')
+            .select('opening_id, card_id')
+            .in('opening_id', openingIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const openingCards = openingCardsResult.data ?? [];
+
+    // Un seul chargement pour les cartes des boosters et du marché
+
+    const allCardIds = [
+      ...new Set([
+        ...openingCards.map((item) => item.card_id),
+        ...marketSales.map((sale) => sale.card_id),
+      ]),
+    ];
+
+    const { data: activityCards } =
+      allCardIds.length > 0
+        ? await supabase
+            .from('cards')
+            .select('id, name')
+            .in('id', allCardIds)
+        : { data: [] };
+
+    const boosterNames = new Map(
+      (boostersResult.data ?? []).map((booster) => [
+        booster.id,
+        booster.name,
+      ])
+    );
+
+    const cardNames = new Map(
+      (activityCards ?? []).map((card) => [card.id, card.name])
+    );
+
+    // Reconstruction de l'historique des boosters
+
+    recentOpenings = openings.map((opening) => ({
+      id: opening.id,
+      opened_at: opening.opened_at,
+      energy_spent: opening.energy_spent,
+      boosterName:
+        boosterNames.get(opening.booster_id) ?? 'Booster',
+      cards: openingCards
+        .filter((item) => item.opening_id === opening.id)
+        .map((item) => cardNames.get(item.card_id) ?? 'Carte inconnue'),
+    }));
+
+    // Reconstruction de l'historique du marché
+
+    recentMarketTransactions = marketSales.map((sale) => ({
+      id: sale.id,
+      sold_at: sale.sold_at,
+      kind: sale.buyer_id === user.id ? 'purchase' : 'sale',
+      cardName: cardNames.get(sale.card_id) ?? 'Carte inconnue',
+      quantity: sale.quantity,
+      total_amount: sale.total_amount,
+      seller_earnings: sale.seller_earnings,
+    }));
 
   // FUSION DES ACTIVITÉS ET TRI CHRONOLOGIQUE
 
@@ -302,7 +365,7 @@ export default async function Home() {
       (a, b) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
     )
-    .slice(0, 10);
+    .slice(0, 5);
 
   const progress =
     totalCards > 0
