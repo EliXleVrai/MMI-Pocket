@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { MarketPriceChart } from '@/components/market-price-chart';
 import { MarketCardBuy } from '@/components/market-card-buy';
+import { MarketFavoriteButton } from '@/components/market-favorite-button';
 
 const rarityLabels: Record<string, string> = {
   common: 'Commune',
@@ -34,6 +35,7 @@ export default async function MarketCardPage({ params }: Props) {
 
   if (!profile?.username) redirect('/choisir-pseudo');
 
+  // Chargement de la carte
   const { data: card, error: cardError } = await supabase
     .from('cards')
     .select(`
@@ -50,12 +52,22 @@ export default async function MarketCardPage({ params }: Props) {
 
   if (cardError || !card) notFound();
 
+  // Vérification des favoris
+  const { data: favorite } = await supabase
+    .from('market_favorites')
+    .select('card_id')
+    .eq('user_id', user.id)
+    .eq('card_id', id)
+    .maybeSingle();
+
+  // Chargement de l'extension
   const { data: extension } = await supabase
     .from('extensions')
     .select('name, cover_url')
     .eq('id', card.extension_id)
     .single();
 
+  // Chargement des annonces
   const { data: listingRows } = await supabase
     .from('market_listings')
     .select(`
@@ -83,6 +95,7 @@ export default async function MarketCardPage({ params }: Props) {
     sellers = data ?? [];
   }
 
+  // Historique des prix
   const { data: history } = await supabase
     .from('market_card_daily_prices')
     .select(`
@@ -125,6 +138,7 @@ export default async function MarketCardPage({ params }: Props) {
           gap: 28,
           alignItems: 'start',
         }}>
+          {/* Image de la carte */}
           <div style={{
             background: '#f1f6ef',
             border: '1px solid #e1ebdf',
@@ -148,6 +162,7 @@ export default async function MarketCardPage({ params }: Props) {
             )}
           </div>
 
+          {/* Informations de la carte */}
           <div>
             <span style={{
               color: '#719078',
@@ -211,6 +226,14 @@ export default async function MarketCardPage({ params }: Props) {
               </p>
             )}
 
+            {/* Bouton favoris */}
+            <MarketFavoriteButton
+              cardId={card.id}
+              currentUserId={user.id}
+              initialIsFavorite={!!favorite}
+            />
+
+            {/* Prix actuel */}
             <div style={{
               background: '#f5f8f3',
               border: '1px solid #e5eee3',
@@ -240,6 +263,7 @@ export default async function MarketCardPage({ params }: Props) {
           </div>
         </div>
 
+        {/* Graphique */}
         <section style={{ marginTop: 36 }}>
           <h2 style={{ color: '#294735', marginBottom: 14 }}>
             Cours de la carte
@@ -248,6 +272,7 @@ export default async function MarketCardPage({ params }: Props) {
           <MarketPriceChart points={history ?? []} />
         </section>
 
+        {/* Annonces */}
         <section style={{ marginTop: 36 }}>
           <h2 style={{ color: '#294735', marginBottom: 14 }}>
             Annonces disponibles
@@ -283,6 +308,7 @@ export default async function MarketCardPage({ params }: Props) {
                       <strong style={{ color: '#355640' }}>
                         @{seller?.username ?? 'Joueur'}
                       </strong>
+
                       <p style={{
                         color: '#829087',
                         fontSize: 13,
