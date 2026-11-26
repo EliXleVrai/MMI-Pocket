@@ -314,7 +314,9 @@ export default function BoostersPage() {
               key={`${currentCard.id}-${currentCardIndex}`}
               className={`booster-flip-card ${
                 isCardRevealed ? 'is-revealed' : ''
-              } rarity-${currentCard.rarity}`}
+              } rarity-${currentCard.rarity} ${
+                result.lucky ? 'lucky-booster-card' : ''
+              }`}
               onClick={() => {
                 if (!isCardRevealed) setIsCardRevealed(true);
               }}
