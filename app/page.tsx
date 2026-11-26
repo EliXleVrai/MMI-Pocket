@@ -1,4 +1,3 @@
-
 import {
   ArrowRight,
   Bolt,
@@ -36,7 +35,7 @@ export default async function Home() {
   let totalCopies = 0;
   let totalCards = 0;
   let activeExtensions = 0;
-  const featuredCards: {
+  let featuredCards: {
     id: string;
     name: string;
     image_url: string | null;
