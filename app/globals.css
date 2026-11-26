@@ -3426,6 +3426,46 @@ h1 span {
 }
 
 
+/* INSPECTION : POSITION FIXE PAR RAPPORT À L'ÉCRAN */
+
+.collection-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: var(--sidebar-width) !important;
+
+  width: auto !important;
+  height: 100vh;
+  height: 100dvh;
+
+  display: flex;
+  align-items: center !important;
+  justify-content: center !important;
+
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+/* La sidebar reste entièrement visible */
+.sidebar {
+  z-index: 1001;
+}
+
+/* Sur mobile, la sidebar devient une barre horizontale */
+@media (max-width: 760px) {
+  .collection-modal-overlay {
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+  }
+
+  .collection-modal-overlay {
+    align-items: center !important;
+  }
+}
+
 /* =========================================
    INSPECTION DE CARTE - DESIGN PREMIUM
 ========================================= */
