@@ -431,7 +431,7 @@ export function MarketView({
               </label>
 
               <div className="market-sell-summary">
-                <span>Valeur totale de l'annonce</span>
+                <span>Valeur totale de l&apos;annonce</span>
                 <strong>
                   {(quantity * price).toLocaleString('fr-FR')} pièces
                 </strong>
@@ -472,7 +472,7 @@ export function MarketView({
           {myListings.length === 0 ? (
             <div className="market-empty">
               <span>📋</span>
-              <h3>Tu n'as aucune annonce</h3>
+              <h3>Tu n&apos;as aucune annonce</h3>
               <p>Les cartes que tu mets en vente apparaîtront ici.</p>
             </div>
           ) : (
@@ -513,8 +513,8 @@ export function MarketView({
       <div className="market-footer-note">
         <span>📈</span>
         <p>
-          Chaque transaction contribue à l'historique des cours.
-          Consulte bientôt l'évolution des prix de tes cartes sur 7 jours.
+          Chaque transaction contribue à l&apos;historique des cours.
+          Consulte bientôt l&apos;évolution des prix de tes cartes sur 7 jours.
         </p>
       </div>
     </div>
