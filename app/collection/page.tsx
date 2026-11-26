@@ -71,13 +71,7 @@ export default async function CollectionPage() {
   );
 
   // Construction de la collection complète.
-  const cards = (allCards ?? [])
-    .filter((card) => {
-      const quantity = ownedQuantities.get(card.id) ?? 0;
-
-      return card.is_active || quantity > 0;
-    })
-    .map((card) => {
+  const cards = (allCards ?? []).map((card) => {
       const extension = Array.isArray(card.extensions)
         ? card.extensions[0]
         : card.extensions;
