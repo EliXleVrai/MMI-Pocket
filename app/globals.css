@@ -3880,7 +3880,14 @@ h1 span {
   }
 }
 
+.collection-modal-image {
+  position: relative;
+}
 
+.collection-modal-image-missing {
+  filter: brightness(0);
+  opacity: 0.35;
+}
 
 /* ==========================================================================
    12. MARCHÉ
