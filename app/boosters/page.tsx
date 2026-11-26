@@ -297,9 +297,22 @@ export default function BoostersPage() {
 
           <div className="booster-single-card-area">
             <div
+              key={`${currentCard.id}-${currentCardIndex}`}
               className={`booster-flip-card ${
                 isCardRevealed ? 'is-revealed' : ''
               } rarity-${currentCard.rarity}`}
+              onClick={() => {
+                if (!isCardRevealed) setIsCardRevealed(true);
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Révéler la carte"
+              onKeyDown={(event) => {
+                if (!isCardRevealed && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  setIsCardRevealed(true);
+                }
+              }}
             >
               <div className="booster-card-inner">
                 <div className="booster-card-face booster-card-back">
