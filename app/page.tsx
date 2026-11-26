@@ -76,6 +76,7 @@ export default async function Home() {
   let featuredCards: FeaturedCard[] = [];
   let recentOpenings: RecentOpening[] = [];
   let recentMarketTransactions: RecentMarketTransaction[] = [];
+  let recentActivity: RecentActivity[] = [];
 
   if (user) {
     const [
@@ -152,75 +153,6 @@ export default async function Home() {
       featuredCards = [...featuredCards, ...missing];
     }
 
-    // ACTIVITÉ RÉCENTE : ouvertures de boosters
-
-    const { data: openings } = await supabase
-      .from('booster_openings')
-      .select('id, booster_id, energy_spent, opened_at')
-      .eq('user_id', user.id)
-      .order('opened_at', { ascending: false })
-      .limit(10);
-
-    if (openings && openings.length > 0) {
-      const openingIds = openings.map((opening) => opening.id);
-
-      const boosterIds = [
-        ...new Set(openings.map((opening) => opening.booster_id)),
-      ];
-
-      const [boostersResult, openingCardsResult] = await Promise.all([
-        supabase
-          .from('boosters')
-          .select('id, name')
-          .in('id', boosterIds),
-
-        supabase
-          .from('booster_opening_cards')
-          .select('opening_id, card_id')
-          .in('opening_id', openingIds),
-      ]);
-
-      const openingCards = openingCardsResult.data ?? [];
-
-      const cardIds = [
-        ...new Set(openingCards.map((item) => item.card_id)),
-      ];
-
-      let activityCards: { id: string; name: string }[] = [];
-
-      if (cardIds.length > 0) {
-        const { data } = await supabase
-          .from('cards')
-          .select('id, name')
-          .in('id', cardIds);
-
-        activityCards = data ?? [];
-      }
-
-      const boosterNames = new Map(
-        (boostersResult.data ?? []).map((booster) => [
-          booster.id,
-          booster.name,
-        ])
-      );
-
-      const cardNames = new Map(
-        activityCards.map((card) => [card.id, card.name])
-      );
-
-      recentOpenings = openings.map((opening) => ({
-        id: opening.id,
-        opened_at: opening.opened_at,
-        energy_spent: opening.energy_spent,
-        boosterName:
-          boosterNames.get(opening.booster_id) ?? 'Booster',
-        cards: openingCards
-          .filter((item) => item.opening_id === opening.id)
-          .map((item) => cardNames.get(item.card_id) ?? 'Carte inconnue'),
-      }));
-    }
-
-    
     // ACTIVITÉ RÉCENTE : boosters et marché en parallèle
 
     const [openingsResult, marketSalesResult] = await Promise.all([
@@ -323,49 +255,50 @@ export default async function Home() {
       seller_earnings: sale.seller_earnings,
     }));
 
-  // FUSION DES ACTIVITÉS ET TRI CHRONOLOGIQUE
+    // FUSION DES ACTIVITÉS ET TRI CHRONOLOGIQUE
 
-  const recentActivity: RecentActivity[] = [
-    ...recentOpenings.map((opening) => ({
-      id: `booster-${opening.id}`,
-      date: opening.opened_at,
-      kind: 'booster' as const,
-      title: `Booster ouvert : ${opening.boosterName}`,
-      description: `${opening.cards.length} carte${
-        opening.cards.length > 1 ? 's' : ''
-      } obtenue${opening.cards.length > 1 ? 's' : ''} · ${
-        opening.energy_spent
-      } énergie dépensée`,
-      detail: opening.cards.join(' · '),
-    })),
+    recentActivity = [
+      ...recentOpenings.map((opening) => ({
+        id: `booster-${opening.id}`,
+        date: opening.opened_at,
+        kind: 'booster' as const,
+        title: `Booster ouvert : ${opening.boosterName}`,
+        description: `${opening.cards.length} carte${
+          opening.cards.length > 1 ? 's' : ''
+        } obtenue${opening.cards.length > 1 ? 's' : ''} · ${
+          opening.energy_spent
+        } énergie dépensée`,
+        detail: opening.cards.join(' · '),
+      })),
 
-    ...recentMarketTransactions.map((transaction) => ({
-      id: `market-${transaction.id}`,
-      date: transaction.sold_at,
-      kind: transaction.kind,
-      title:
-        transaction.kind === 'purchase'
-          ? `Carte achetée : ${transaction.cardName}`
-          : `Carte vendue : ${transaction.cardName}`,
-      description:
-        transaction.kind === 'purchase'
-          ? `${transaction.quantity} exemplaire${
-              transaction.quantity > 1 ? 's' : ''
-            } · ${Number(transaction.total_amount).toLocaleString(
-              'fr-FR'
-            )} pièces dépensées`
-          : `${transaction.quantity} exemplaire${
-              transaction.quantity > 1 ? 's' : ''
-            } · ${Number(transaction.seller_earnings).toLocaleString(
-              'fr-FR'
-            )} pièces reçues`,
-    })),
-  ]
-    .sort(
-      (a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-    )
-    .slice(0, 5);
+      ...recentMarketTransactions.map((transaction) => ({
+        id: `market-${transaction.id}`,
+        date: transaction.sold_at,
+        kind: transaction.kind,
+        title:
+          transaction.kind === 'purchase'
+            ? `Carte achetée : ${transaction.cardName}`
+            : `Carte vendue : ${transaction.cardName}`,
+        description:
+          transaction.kind === 'purchase'
+            ? `${transaction.quantity} exemplaire${
+                transaction.quantity > 1 ? 's' : ''
+              } · ${Number(transaction.total_amount).toLocaleString(
+                'fr-FR'
+              )} pièces dépensées`
+            : `${transaction.quantity} exemplaire${
+                transaction.quantity > 1 ? 's' : ''
+              } · ${Number(transaction.seller_earnings).toLocaleString(
+                'fr-FR'
+              )} pièces reçues`,
+      })),
+    ]
+      .sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+      )
+      .slice(0, 5);
+  }
 
   const progress =
     totalCards > 0
