@@ -93,7 +93,7 @@ export async function AdminDashboard() {
     <section className="admin-dashboard">
       <div className="admin-dashboard-heading">
         <div>
-          <h2>Vue d'ensemble</h2>
+          <h2>Vue d&apos;ensemble</h2>
           <p>Les statistiques globales de MMI Pocket.</p>
         </div>
         <span className="admin-live-indicator">
