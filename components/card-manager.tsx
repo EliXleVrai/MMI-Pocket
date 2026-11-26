@@ -12,12 +12,15 @@ type Rarity =
   | 'epic'
   | 'legendary';
 
+type Genre = 'Terrain' | 'Personnage' | 'Objet';
+
 type Card = {
   id: string;
   name: string;
   description: string | null;
   image_url: string | null;
   rarity: Rarity;
+  genre: Genre;
   card_number: number | null;
   extension_id: string;
   is_active: boolean;
@@ -42,6 +45,7 @@ export function CardManager() {
   const [description, setDescription] = useState('');
   const [extensionId, setExtensionId] = useState('');
   const [rarity, setRarity] = useState<Rarity>('common');
+  const [genre, setGenre] = useState<Genre>('Personnage');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [buybackPrice, setBuybackPrice] = useState('0');
@@ -57,7 +61,7 @@ export function CardManager() {
       supabase
         .from('cards')
         .select(
-          'id, name, description, image_url, rarity, card_number, extension_id, is_active, buyback_price'
+          'id, name, description, image_url, rarity, genre, card_number, extension_id, is_active, buyback_price'
         )
         .order('created_at', { ascending: false }),
 
@@ -94,6 +98,7 @@ export function CardManager() {
     setDescription(card.description ?? '');
     setExtensionId(card.extension_id);
     setRarity(card.rarity);
+    setGenre(card.genre ?? 'Personnage');
     setImageUrl(card.image_url ?? '');
     setImageFile(null);
     setBuybackPrice(String(card.buyback_price ?? 0));
@@ -233,6 +238,7 @@ export function CardManager() {
         description: description.trim() || null,
         extension_id: extensionId,
         rarity,
+        genre,
         image_url: finalImageUrl,
         buyback_price: Math.floor(parsedBuybackPrice),
       })
@@ -393,6 +399,20 @@ export function CardManager() {
 
           <RarityBadge rarity={rarity} />
 
+          <label htmlFor="edit-card-genre">
+            Genre de la carte
+          </label>
+
+          <select
+            id="edit-card-genre"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value as Genre)}
+          >
+            <option value="Terrain">Terrain</option>
+            <option value="Personnage">Personnage</option>
+            <option value="Objet">Objet</option>
+          </select>
+
           <div className="buyback-price-field">
             <label htmlFor="edit-card-buyback">
               Prix de rachat par le serveur (pièces)
@@ -507,6 +527,10 @@ export function CardManager() {
                 </span>
 
                 <RarityBadge rarity={card.rarity} />
+
+                <span className="admin-card-genre">
+                  {card.genre ?? 'Personnage'}
+                </span>
 
                 <span className="admin-card-buyback">
                   <strong>Rachat serveur :</strong>{' '}
