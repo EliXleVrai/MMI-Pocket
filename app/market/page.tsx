@@ -138,6 +138,32 @@ export default async function MarketPage() {
 
   return (
     <main className="page-container">
+      <div style={{
+        maxWidth: 1100,
+        margin: '0 auto 20px',
+        display: 'flex',
+        justifyContent: 'flex-end',
+      }}>
+        <a
+          href="/market/favoris"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '11px 18px',
+            borderRadius: 12,
+            background: '#fff5df',
+            border: '1px solid #f0dfb8',
+            color: '#a87518',
+            fontWeight: 800,
+            textDecoration: 'none',
+          }}
+        >
+          ★ Mes favoris
+        </a>
+      </div>
+
+    <MarketView
       <MarketView
         initialListings={listings}
         ownedCards={ownedCards}
