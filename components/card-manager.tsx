@@ -46,6 +46,7 @@ export function CardManager() {
   const [extensionId, setExtensionId] = useState('');
   const [rarity, setRarity] = useState<Rarity>('common');
   const [genre, setGenre] = useState<Genre>('Personnage');
+  const [cardNumber, setCardNumber] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [buybackPrice, setBuybackPrice] = useState('0');
@@ -99,6 +100,9 @@ export function CardManager() {
     setExtensionId(card.extension_id);
     setRarity(card.rarity);
     setGenre(card.genre ?? 'Personnage');
+    setCardNumber(
+      card.card_number !== null ? String(card.card_number) : ''
+    );
     setImageUrl(card.image_url ?? '');
     setImageFile(null);
     setBuybackPrice(String(card.buyback_price ?? 0));
@@ -175,6 +179,20 @@ export function CardManager() {
       return;
     }
 
+    let parsedCardNumber: number | null = null;
+
+    if (cardNumber.trim() !== '') {
+      parsedCardNumber = Number(cardNumber);
+
+      if (
+        !Number.isSafeInteger(parsedCardNumber) ||
+        parsedCardNumber < 0
+      ) {
+        setError('Le numéro doit être un entier positif ou nul.');
+        return;
+      }
+    }
+
     if (imageUrl.trim()) {
       try {
         const parsed = new URL(imageUrl.trim());
@@ -239,6 +257,7 @@ export function CardManager() {
         extension_id: extensionId,
         rarity,
         genre,
+        card_number: parsedCardNumber,
         image_url: finalImageUrl,
         buyback_price: Math.floor(parsedBuybackPrice),
       })
@@ -363,6 +382,24 @@ export function CardManager() {
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
           />
+
+          <label htmlFor="edit-card-number">
+            Numéro de la carte
+          </label>
+
+          <input
+            id="edit-card-number"
+            type="number"
+            min="0"
+            step="1"
+            value={cardNumber}
+            onChange={(e) => setCardNumber(e.target.value)}
+            placeholder="Ex : 25"
+          />
+
+          <small>
+            Tu peux attribuer un numéro personnalisé ou laisser ce champ vide.
+          </small>
 
           <label htmlFor="edit-card-extension">
             Extension
