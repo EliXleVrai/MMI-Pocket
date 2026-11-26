@@ -28,6 +28,8 @@ const rarityLabels = {
   legendary: 'Légendaire',
 };
 
+type StatusFilter = 'all' | 'owned' | 'missing' | 'duplicates';
+
 export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) {
   const supabase = createClient();
 
@@ -35,6 +37,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
   const [search, setSearch] = useState('');
   const [rarityFilter, setRarityFilter] = useState('all');
   const [extensionFilter, setExtensionFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [selectedCard, setSelectedCard] = useState<OwnedCard | null>(null);
 
   const [sellQuantity, setSellQuantity] = useState(1);
@@ -54,22 +57,8 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
     return Array.from(unique, ([id, name]) => ({ id, name }));
   }, [cards]);
 
-  const filteredCards = useMemo(() => {
-    return cards.filter((card) => {
-      const matchesSearch = card.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-      const matchesRarity =
-        rarityFilter === 'all' || card.rarity === rarityFilter;
-
-      const matchesExtension =
-        extensionFilter === 'all' ||
-        card.extension?.id === extensionFilter;
-
-      return matchesSearch && matchesRarity && matchesExtension;
-    });
-  }, [cards, search, rarityFilter, extensionFilter]);
+  const ownedTypes = cards.filter((card) => card.quantity > 0).length;
+  const missingTypes = cards.length - ownedTypes;
 
   const totalCards = cards.reduce(
     (total, card) => total + card.quantity,
@@ -85,6 +74,65 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
     (total, card) => total + card.quantity * card.buyback_price,
     0
   );
+
+  const completion = cards.length
+    ? Math.round((ownedTypes / cards.length) * 100)
+    : 0;
+
+  const extensionProgress = extensions.map((extension) => {
+    const extensionCards = cards.filter(
+      (card) => card.extension?.id === extension.id
+    );
+
+    const owned = extensionCards.filter(
+      (card) => card.quantity > 0
+    ).length;
+
+    return {
+      ...extension,
+      total: extensionCards.length,
+      owned,
+      percentage: extensionCards.length
+        ? Math.round((owned / extensionCards.length) * 100)
+        : 0,
+    };
+  });
+
+  const filteredCards = useMemo(() => {
+    return cards.filter((card) => {
+      const matchesSearch =
+        card.name.toLowerCase().includes(search.toLowerCase()) ||
+        (card.extension?.name ?? '')
+          .toLowerCase()
+          .includes(search.toLowerCase());
+
+      const matchesRarity =
+        rarityFilter === 'all' || card.rarity === rarityFilter;
+
+      const matchesExtension =
+        extensionFilter === 'all' ||
+        card.extension?.id === extensionFilter;
+
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'owned' && card.quantity > 0) ||
+        (statusFilter === 'missing' && card.quantity === 0) ||
+        (statusFilter === 'duplicates' && card.quantity > 1);
+
+      return (
+        matchesSearch &&
+        matchesRarity &&
+        matchesExtension &&
+        matchesStatus
+      );
+    });
+  }, [
+    cards,
+    search,
+    rarityFilter,
+    extensionFilter,
+    statusFilter,
+  ]);
 
   async function sellCard() {
     if (!selectedCard || selling) return;
@@ -116,7 +164,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
 
     setSelling(true);
 
-    const { data, error } = await supabase.rpc('sell_card_to_server', {
+    const { error } = await supabase.rpc('sell_card_to_server', {
       p_card_id: selectedCard.id,
       p_quantity: sellQuantity,
     });
@@ -129,35 +177,28 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
 
     const updatedQuantity = selectedCard.quantity - sellQuantity;
 
+    // On conserve toujours la carte dans l'album,
+    // même lorsque sa quantité tombe à zéro.
     setCards((previousCards) =>
-      previousCards
-        .map((card) =>
-          card.id === selectedCard.id
-            ? { ...card, quantity: updatedQuantity }
-            : card
-        )
-        .filter((card) => card.quantity > 0)
+      previousCards.map((card) =>
+        card.id === selectedCard.id
+          ? { ...card, quantity: updatedQuantity }
+          : card
+      )
     );
 
     setSellMessage(
       `${sellQuantity} carte(s) vendue(s) pour ${total} pièces !`
     );
 
+    setSelectedCard((previous) =>
+      previous
+        ? { ...previous, quantity: updatedQuantity }
+        : null
+    );
+
+    setSellQuantity(1);
     setSelling(false);
-
-    if (updatedQuantity <= 0) {
-      setSelectedCard(null);
-    } else {
-      setSelectedCard((previous) =>
-        previous
-          ? { ...previous, quantity: updatedQuantity }
-          : null
-      );
-      setSellQuantity(1);
-    }
-
-    // Le nouveau solde est également renvoyé par la fonction SQL.
-    console.log('Résultat de la vente :', data);
   }
 
   function openCard(card: OwnedCard) {
@@ -171,8 +212,8 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
     <div className="collection-view">
       <div className="collection-stats">
         <div className="collection-stat">
-          <span>Cartes différentes</span>
-          <strong>{cards.length}</strong>
+          <span>Cartes obtenues</span>
+          <strong>{ownedTypes} / {cards.length}</strong>
         </div>
 
         <div className="collection-stat">
@@ -190,6 +231,71 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
           <strong>{totalBuybackValue} pièces</strong>
         </div>
       </div>
+
+      <section className="collection-progress">
+        <div className="collection-progress-heading">
+          <div>
+            <h2>Progression de l'album</h2>
+            <p>{ownedTypes} cartes découvertes sur {cards.length}</p>
+          </div>
+          <strong>{completion}%</strong>
+        </div>
+
+        <div className="collection-progress-track">
+          <div
+            className="collection-progress-fill"
+            style={{ width: `${completion}%` }}
+          />
+        </div>
+
+        <div className="collection-progress-legend">
+          <span>{ownedTypes} obtenues</span>
+          <span>{missingTypes} manquantes</span>
+        </div>
+      </section>
+
+      {extensionProgress.length > 0 && (
+        <section className="collection-extensions">
+          <h2>Progression par extension</h2>
+
+          <div className="collection-extension-grid">
+            {extensionProgress.map((extension) => (
+              <button
+                type="button"
+                key={extension.id}
+                className={`collection-extension-card ${
+                  extensionFilter === extension.id ? 'active' : ''
+                }`}
+                onClick={() =>
+                  setExtensionFilter(
+                    extensionFilter === extension.id
+                      ? 'all'
+                      : extension.id
+                  )
+                }
+              >
+                <div className="collection-extension-heading">
+                  <strong>{extension.name}</strong>
+                  <span>{extension.percentage}%</span>
+                </div>
+
+                <div className="collection-progress-track">
+                  <div
+                    className="collection-progress-fill"
+                    style={{
+                      width: `${extension.percentage}%`,
+                    }}
+                  />
+                </div>
+
+                <small>
+                  {extension.owned} / {extension.total} cartes
+                </small>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {sellMessage && (
         <div className="collection-sale-success">
@@ -233,8 +339,26 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
         </select>
       </div>
 
+      <div className="collection-status-filters">
+        {([
+          ['all', 'Toutes'],
+          ['owned', 'Obtenues'],
+          ['missing', 'Manquantes'],
+          ['duplicates', 'Doublons'],
+        ] as [StatusFilter, string][]).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={statusFilter === value ? 'active' : ''}
+            onClick={() => setStatusFilter(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="collection-results">
-        <h2>Mes cartes</h2>
+        <h2>Album de cartes</h2>
         <span>{filteredCards.length} résultat(s)</span>
       </div>
 
@@ -242,52 +366,70 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
         <div className="collection-empty">
           <span>🃏</span>
           <h3>Aucune carte trouvée</h3>
-          <p>
-            {cards.length === 0
-              ? 'Ouvre ton premier booster pour commencer ta collection !'
-              : 'Essaie de modifier tes filtres ou ta recherche.'}
-          </p>
+          <p>Essaie de modifier tes filtres ou ta recherche.</p>
         </div>
       ) : (
         <div className="collection-grid">
-          {filteredCards.map((card) => (
-            <button
-              key={card.id}
-              type="button"
-              className={`collection-card rarity-${card.rarity}`}
-              onClick={() => openCard(card)}
-            >
-              <div className="collection-card-image">
-                {card.image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={card.image_url} alt={card.name} />
-                ) : (
-                  <div className="collection-card-placeholder">
-                    🃏
-                  </div>
-                )}
+          {filteredCards.map((card) => {
+            const missing = card.quantity === 0;
 
-                {card.quantity > 1 && (
-                  <span className="collection-quantity">
-                    ×{card.quantity}
+            return (
+              <button
+                key={card.id}
+                type="button"
+                className={`collection-card rarity-${card.rarity} ${
+                  missing ? 'collection-card-missing' : 'collection-card-owned'
+                }`}
+                onClick={() => openCard(card)}
+              >
+                <div className="collection-card-image">
+                  {card.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={card.image_url}
+                      alt={missing ? 'Carte non obtenue' : card.name}
+                    />
+                  ) : (
+                    <div className="collection-card-placeholder">
+                      🃏
+                    </div>
+                  )}
+
+                  {missing ? (
+                    <span className="collection-missing-label">
+                      ?
+                    </span>
+                  ) : (
+                    <span className="collection-owned-label">
+                      ✓
+                    </span>
+                  )}
+
+                  {card.quantity > 1 && (
+                    <span className="collection-quantity">
+                      ×{card.quantity}
+                    </span>
+                  )}
+                </div>
+
+                <div className="collection-card-info">
+                  <strong>
+                    {missing ? 'Carte inconnue' : card.name}
+                  </strong>
+
+                  <RarityBadge rarity={card.rarity} showLabel={false} />
+
+                  <span>
+                    {card.extension?.name ?? 'Extension inconnue'}
                   </span>
-                )}
-              </div>
 
-              <div className="collection-card-info">
-                <strong>{card.name}</strong>
-                <RarityBadge rarity={card.rarity} showLabel={false} />
-
-                <span>
-                  {card.extension?.name ?? 'Extension inconnue'}
-                </span>
-
-                {card.card_number !== null && (
-                  <small>N° {card.card_number}</small>
-                )}
-              </div>
-            </button>
-          ))}
+                  {card.card_number !== null && (
+                    <small>N° {card.card_number}</small>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -354,73 +496,91 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                 </span>
               </div>
 
-              <div className="collection-sale-panel">
-                <h3>Vendre au serveur</h3>
+              {selectedCard.quantity > 0 ? (
+                <div className="collection-sale-panel">
+                  <h3>Vendre au serveur</h3>
 
-                <div className="collection-sale-price">
-                  <span>Prix de rachat unitaire</span>
-                  <strong>
-                    {selectedCard.buyback_price} pièces
-                  </strong>
+                  <div className="collection-sale-price">
+                    <span>Prix de rachat unitaire</span>
+                    <strong>{selectedCard.buyback_price} pièces</strong>
+                  </div>
+
+                  {selectedCard.buyback_price > 0 ? (
+                    <>
+                      <div className="collection-sale-quantity">
+                        <label htmlFor="sell-quantity">
+                          Nombre d'exemplaires à vendre
+                        </label>
+
+                        <input
+                          id="sell-quantity"
+                          type="number"
+                          min="1"
+                          max={selectedCard.quantity}
+                          step="1"
+                          value={sellQuantity}
+                          onChange={(event) =>
+                            setSellQuantity(
+                              Math.max(
+                                1,
+                                Number(event.target.value) || 1
+                              )
+                            )
+                          }
+                        />
+                      </div>
+
+                      <div className="collection-sale-total">
+                        <span>Tu recevras</span>
+                        <strong>
+                          {selectedCard.buyback_price *
+                            Math.min(
+                              sellQuantity,
+                              selectedCard.quantity
+                            )}{' '}
+                          pièces
+                        </strong>
+                      </div>
+
+                      {sellError && (
+                        <p className="form-error">{sellError}</p>
+                      )}
+
+                      <button
+                        type="button"
+                        className="collection-sell-button"
+                        onClick={sellCard}
+                        disabled={
+                          selling ||
+                          sellQuantity < 1 ||
+                          sellQuantity > selectedCard.quantity
+                        }
+                      >
+                        {selling
+                          ? 'Vente en cours...'
+                          : 'Vendre au serveur'}
+                      </button>
+                    </>
+                  ) : (
+                    <p className="collection-no-buyback">
+                      Cette carte ne peut pas être rachetée par le serveur.
+                    </p>
+                  )}
+
+                  <small>
+                    Le prix est fixé par l'administrateur et vérifié par
+                    Supabase lors de la vente.
+                  </small>
                 </div>
-
-                <div className="collection-sale-quantity">
-                  <label htmlFor="sell-quantity">
-                    Nombre d&apos;exemplaires à vendre
-                  </label>
-
-                  <input
-                    id="sell-quantity"
-                    type="number"
-                    min="1"
-                    max={selectedCard.quantity}
-                    step="1"
-                    value={sellQuantity}
-                    onChange={(event) =>
-                      setSellQuantity(
-                        Math.max(1, Number(event.target.value) || 1)
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="collection-sale-total">
-                  <span>Tu recevras</span>
-                  <strong>
-                    {selectedCard.buyback_price *
-                      Math.min(sellQuantity, selectedCard.quantity)}{' '}
-                    pièces
-                  </strong>
-                </div>
-
-                {sellError && (
-                  <p className="form-error">{sellError}</p>
-                )}
-
-                {selectedCard.buyback_price > 0 ? (
-                  <button
-                    type="button"
-                    className="collection-sell-button"
-                    onClick={sellCard}
-                    disabled={
-                      selling ||
-                      sellQuantity < 1 ||
-                      sellQuantity > selectedCard.quantity
-                    }
-                  >
-                    {selling ? 'Vente en cours...' : 'Vendre au serveur'}
-                  </button>
-                ) : (
-                  <p className="collection-no-buyback">
-                    Cette carte ne peut pas être rachetée par le serveur.
+              ) : (
+                <div className="collection-missing-details">
+                  <strong>Carte non obtenue</strong>
+                  <p>
+                    Ouvre des boosters pour découvrir cette carte et
+                    l'ajouter à ton album.
                   </p>
-                )}
-
-                <small>
-                  Le prix est fixé par l&apos;administrateur et vérifié par
-                  Supabase lors de la vente.
-                </small>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
