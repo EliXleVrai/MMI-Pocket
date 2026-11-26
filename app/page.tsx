@@ -36,7 +36,14 @@ export default async function Home() {
   let totalCopies = 0;
   let totalCards = 0;
   let activeExtensions = 0;
-  let featuredCards: any[] = [];
+  const featuredCards: {
+  id: string;
+  name: string;
+  image_url: string | null;
+  rarity: string;
+  card_number: number | null;
+  quantity?: number;
+}[] = ...
 
   if (user) {
     const [profileResult, walletResult, ownedResult, cardsResult, extensionsResult] =
