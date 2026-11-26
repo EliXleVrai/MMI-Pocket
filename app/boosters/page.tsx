@@ -396,7 +396,7 @@ export default function BoostersPage() {
               >
                 {currentCardIndex < result.cards.length - 1
                   ? 'Carte suivante →'
-                  : 'Voir mes cartes obtenues ✨'}
+                  : 'Voir mes cartes obtenues'}
               </button>
             )}
           </div>
@@ -404,6 +404,16 @@ export default function BoostersPage() {
       )}
 
       {result && showSummary && (
+      {result.lucky && (
+        <div className="lucky-summary-banner">
+          <span>🌟</span>
+          <div>
+            <h2>OUVERTURE EXCEPTIONNELLE !</h2>
+            <p>Tu as obtenu un booster chanceux : 100 % de cartes épiques ou légendaires !</p>
+          </div>
+          <span>✨</span>
+        </div>
+      )}
         <section className="booster-result">
           <div className="booster-result-heading">
             <span>✨</span>
