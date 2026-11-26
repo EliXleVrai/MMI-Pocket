@@ -31,3 +31,658 @@
   background: #f3f3f5;
   color: #d44;
 }
+
+
+/* ==========================================
+   MMI POCKET — DESIGN GLOBAL
+   Extension du thème de la page d'accueil
+========================================== */
+
+:root {
+  --bg: #f7f8f5;
+  --paper: #ffffff;
+  --ink: #20251f;
+  --muted: #858b82;
+  --line: #e9ece6;
+  --green: #c9f36b;
+  --green-dark: #344329;
+  --green-soft: #f1f6e9;
+  --shadow: 0 12px 35px rgba(35, 45, 30, .06);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  transition: background .2s, color .2s, transform .2s, box-shadow .2s;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+a {
+  transition: color .2s, background .2s;
+}
+
+/* ==========================================
+   PAGES
+========================================== */
+
+.page-container {
+  width: 100%;
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 38px 52px 60px;
+  animation: page-appear .4s ease both;
+}
+
+@keyframes page-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-container > h1 {
+  font-size: clamp(32px, 4vw, 46px);
+  margin: 20px 0 10px;
+}
+
+.page-description {
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 30px;
+}
+
+.page-container > .profile-card {
+  margin-top: 22px;
+}
+
+.page-container > .profile-card:first-of-type {
+  margin-top: 28px;
+}
+
+/* ==========================================
+   CARTES ET PANNEAUX
+========================================== */
+
+.profile-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  padding: 25px;
+  box-shadow: 0 5px 18px rgba(35, 45, 30, .035);
+  transition: box-shadow .2s, transform .2s;
+}
+
+.profile-card h2 {
+  font: 800 19px Manrope, sans-serif;
+  letter-spacing: -.6px;
+  margin: 0 0 12px;
+}
+
+.profile-card > p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.profile-card > p:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================
+   PROFIL
+========================================== */
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px;
+  background: linear-gradient(120deg, #f0f7e5, #ffffff);
+  border: 1px solid #e7eedc;
+  border-radius: 20px;
+  margin: 25px 0;
+}
+
+.profile-avatar {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 23px;
+  background: var(--green);
+  color: #344329;
+  font: 800 32px Manrope, sans-serif;
+  box-shadow: 0 8px 20px #c9f36b55;
+}
+
+.profile-header h1 {
+  font-size: 30px;
+  margin: 7px 0 3px;
+}
+
+.profile-header p:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+.profile-wallet {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-wallet:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.profile-wallet p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.profile-wallet strong {
+  font: 800 20px Manrope, sans-serif;
+}
+
+/* ==========================================
+   FORMULAIRES
+========================================== */
+
+.card-creator-form {
+  display: grid;
+  gap: 11px;
+  margin-top: 22px;
+}
+
+.card-creator-form label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #555e50;
+  margin-top: 8px;
+}
+
+.card-creator-form input:not([type="file"]),
+.card-creator-form textarea,
+.card-creator-form select,
+.auth-card input,
+.auth-card textarea,
+.auth-card select {
+  width: 100%;
+  min-height: 45px;
+  padding: 11px 14px;
+  border: 1px solid #e4e9df;
+  border-radius: 11px;
+  background: #fbfcf9;
+  color: var(--ink);
+  font-size: 12px;
+  outline: none;
+  transition: border .2s, box-shadow .2s, background .2s;
+}
+
+.card-creator-form textarea {
+  min-height: 105px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.card-creator-form input:focus,
+.card-creator-form textarea:focus,
+.card-creator-form select:focus,
+.auth-card input:focus {
+  border-color: #a9d94c;
+  background: #fff;
+  box-shadow: 0 0 0 4px #c9f36b30;
+}
+
+.card-creator-form input::placeholder,
+.card-creator-form textarea::placeholder {
+  color: #aab0a4;
+}
+
+.card-creator-form input[type="file"] {
+  width: 100%;
+  padding: 15px;
+  border: 1px dashed #cbd6bd;
+  border-radius: 12px;
+  background: #f8faf5;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.card-creator-form small {
+  color: #9ba394;
+  font-size: 10px;
+}
+
+.card-creator-form button {
+  justify-content: center;
+  min-height: 45px;
+  margin-top: 12px;
+  border: 0;
+}
+
+.card-creator-form button:hover:not(:disabled) {
+  background: #b9e75b;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px #c9f36b66;
+}
+
+.card-image-preview {
+  margin: 12px 0;
+  padding: 18px;
+  background: #f5f8ef;
+  border: 1px solid #e9efdf;
+  border-radius: 15px;
+}
+
+.card-image-preview p {
+  color: #6c765f;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 13px;
+}
+
+.card-image-preview img {
+  display: block;
+  width: 100%;
+  max-width: 230px;
+  max-height: 300px;
+  object-fit: contain;
+  margin: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px #35432b20;
+}
+
+.form-error,
+.form-success {
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.form-error {
+  color: #a83f3f;
+  background: #fff0ef;
+  border: 1px solid #f5d9d6;
+}
+
+.form-success {
+  color: #536d2e;
+  background: #f0f8e5;
+  border: 1px solid #dcecc7;
+}
+
+/* ==========================================
+   AUTHENTIFICATION ET CHOIX DU PSEUDO
+========================================== */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 30px 18px;
+  background:
+    radial-gradient(circle at 20% 20%, #e8f4d7 0, transparent 32%),
+    var(--bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 470px;
+  padding: 38px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 23px;
+  box-shadow: var(--shadow);
+}
+
+.auth-logo {
+  display: inline-flex;
+  padding: 10px 14px;
+  border-radius: 11px;
+  background: var(--green);
+  color: #344329;
+  font: 800 12px Manrope, sans-serif;
+  letter-spacing: .8px;
+  margin-bottom: 25px;
+}
+
+.auth-card h1 {
+  font-size: 32px;
+  letter-spacing: -1.4px;
+  margin: 0 0 13px;
+}
+
+.auth-card > p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 25px;
+}
+
+/* ==========================================
+   ADMINISTRATION
+========================================== */
+
+.page-container:has(.card-creator) > h1 {
+  margin-bottom: 8px;
+}
+
+.page-container:has(.card-creator) > .profile-card:first-of-type {
+  background: linear-gradient(115deg, #f0f7e5, #fff);
+  border-color: #e4edd7;
+}
+
+.page-container:has(.card-creator) > .profile-card:first-of-type h2 {
+  color: #40552b;
+}
+
+.card-creator {
+  margin-top: 25px;
+}
+
+/* ==========================================
+   BOUTONS ET INTERACTIONS
+========================================== */
+
+.button-primary,
+.button-secondary,
+.button-dark {
+  transition: transform .2s, box-shadow .2s, background .2s;
+}
+
+.button-primary:hover:not(:disabled),
+.button-secondary:hover:not(:disabled),
+.button-dark:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.button-secondary:hover {
+  background: #f4f7ef;
+  border-color: #dce6cf;
+  color: #465c2e;
+}
+
+.button-dark:hover:not(:disabled) {
+  background: #50673d;
+  box-shadow: 0 5px 13px #34432930;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #a9d94c;
+  outline-offset: 3px;
+}
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+
+.nav-link {
+  transition: background .2s, color .2s, transform .2s;
+}
+
+.nav-link:hover {
+  transform: translateX(3px);
+}
+
+.profile-link {
+  border-radius: 11px;
+  transition: background .2s;
+}
+
+.profile-link:hover {
+  background: #f6f8f2;
+}
+
+.logout-button {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 7px;
+}
+
+.logout-button:hover {
+  background: #fff0ef;
+  color: #c34c4c;
+}
+
+/* ==========================================
+   BARRE DE DÉFILEMENT
+========================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d5dfc8 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #d5dfc8;
+  border-radius: 20px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ==========================================
+   RESPONSIVE — TABLETTES
+========================================== */
+
+@media (max-width: 1050px) {
+  .page-container {
+    padding: 30px;
+  }
+
+  .profile-card {
+    padding: 21px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE — MOBILES
+========================================== */
+
+@media (max-width: 760px) {
+  .sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: auto;
+    min-height: 64px;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 4px 14px #29371a08;
+  }
+
+  .brand {
+    margin: 0;
+  }
+
+  .sidebar .nav-caption {
+    display: block;
+    margin: 15px 0 7px;
+    padding: 0 3px;
+    font-size: 8px;
+  }
+
+  .sidebar nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none;
+  }
+
+  .sidebar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-link {
+    flex: 0 0 auto;
+    height: 36px;
+    padding: 0 11px;
+    gap: 7px;
+    font-size: 10px;
+    background: #f7f8f5;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    transform: none;
+  }
+
+  .sidebar-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 7px;
+  }
+
+  .sidebar-promo {
+    display: none;
+  }
+
+  .profile-link {
+    border: 0;
+    padding: 5px 0;
+  }
+
+  .profile-link .avatar {
+    width: 29px;
+    height: 29px;
+  }
+
+  .logout-button {
+    width: auto;
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .main-content {
+    margin: 0;
+  }
+
+  .page-container {
+    padding: 25px 18px 45px;
+  }
+
+  .page-container > h1 {
+    font-size: 34px;
+    letter-spacing: -1.6px;
+  }
+
+  .page-description {
+    font-size: 12px;
+    margin-bottom: 22px;
+  }
+
+  .profile-card {
+    padding: 19px;
+    border-radius: 14px;
+  }
+
+  .profile-header {
+    padding: 19px;
+    gap: 14px;
+  }
+
+  .profile-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 17px;
+    font-size: 25px;
+  }
+
+  .profile-header h1 {
+    font-size: 23px;
+  }
+
+  .auth-card {
+    padding: 26px 21px;
+  }
+
+  .auth-card h1 {
+    font-size: 27px;
+  }
+}
+
+/* ==========================================
+   PETITS ÉCRANS
+========================================== */
+
+@media (max-width: 390px) {
+  .page-container {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .profile-card {
+    padding: 16px;
+  }
+
+  .page-container > h1 {
+    font-size: 30px;
+  }
+
+  .sidebar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .nav-link {
+    font-size: 9px;
+    padding: 0 9px;
+  }
+}
