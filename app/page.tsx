@@ -1,3 +1,4 @@
+
 import {
   ArrowRight,
   Bolt,
@@ -20,6 +21,23 @@ const rarityLabels: Record<string, string> = {
   legendary: 'Légendaire',
 };
 
+type FeaturedCard = {
+  id: string;
+  name: string;
+  image_url: string | null;
+  rarity: string;
+  card_number: number | null;
+  quantity?: number;
+};
+
+type RecentOpening = {
+  id: string;
+  opened_at: string;
+  energy_spent: number;
+  boosterName: string;
+  cards: string[];
+};
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -35,47 +53,47 @@ export default async function Home() {
   let totalCopies = 0;
   let totalCards = 0;
   let activeExtensions = 0;
-  let featuredCards: {
-    id: string;
-    name: string;
-    image_url: string | null;
-    rarity: string;
-    card_number: number | null;
-    quantity?: number;
-  }[] = [];
+
+  let featuredCards: FeaturedCard[] = [];
+  let recentOpenings: RecentOpening[] = [];
 
   if (user) {
-    const [profileResult, walletResult, ownedResult, cardsResult, extensionsResult] =
-      await Promise.all([
-        supabase
-          .from('profiles')
-          .select('username, display_name')
-          .eq('id', user.id)
-          .maybeSingle(),
+    const [
+      profileResult,
+      walletResult,
+      ownedResult,
+      cardsResult,
+      extensionsResult,
+    ] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('username, display_name')
+        .eq('id', user.id)
+        .maybeSingle(),
 
-        supabase
-          .from('player_wallets')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle(),
+      supabase
+        .from('player_wallets')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle(),
 
-        supabase
-          .from('player_cards')
-          .select('card_id, quantity')
-          .eq('user_id', user.id)
-          .gt('quantity', 0),
+      supabase
+        .from('player_cards')
+        .select('card_id, quantity')
+        .eq('user_id', user.id)
+        .gt('quantity', 0),
 
-        supabase
-          .from('cards')
-          .select('id, name, image_url, rarity, card_number')
-          .eq('is_active', true)
-          .order('card_number', { ascending: true }),
+      supabase
+        .from('cards')
+        .select('id, name, image_url, rarity, card_number')
+        .eq('is_active', true)
+        .order('card_number', { ascending: true }),
 
-        supabase
-          .from('extensions')
-          .select('id')
-          .eq('is_active', true),
-      ]);
+      supabase
+        .from('extensions')
+        .select('id')
+        .eq('is_active', true),
+    ]);
 
     username =
       profileResult.data?.display_name ||
@@ -88,6 +106,7 @@ export default async function Home() {
     coins = walletResult.data?.coins ?? 0;
 
     const owned = ownedResult.data ?? [];
+
     ownedUnique = owned.length;
     totalCopies = owned.reduce(
       (sum, card) => sum + (card.quantity ?? 0),
@@ -95,6 +114,7 @@ export default async function Home() {
     );
 
     const cards = cardsResult.data ?? [];
+
     totalCards = cards.length;
     activeExtensions = extensionsResult.data?.length ?? 0;
 
@@ -111,6 +131,73 @@ export default async function Home() {
 
       featuredCards = [...featuredCards, ...missing];
     }
+
+    // ACTIVITÉ RÉCENTE : les 5 dernières ouvertures
+    const { data: openings } = await supabase
+      .from('booster_openings')
+      .select('id, booster_id, energy_spent, opened_at')
+      .eq('user_id', user.id)
+      .order('opened_at', { ascending: false })
+      .limit(5);
+
+    if (openings && openings.length > 0) {
+      const openingIds = openings.map((opening) => opening.id);
+
+      const boosterIds = [
+        ...new Set(openings.map((opening) => opening.booster_id)),
+      ];
+
+      const [boostersResult, openingCardsResult] = await Promise.all([
+        supabase
+          .from('boosters')
+          .select('id, name')
+          .in('id', boosterIds),
+
+        supabase
+          .from('booster_opening_cards')
+          .select('opening_id, card_id')
+          .in('opening_id', openingIds),
+      ]);
+
+      const openingCards = openingCardsResult.data ?? [];
+
+      const cardIds = [
+        ...new Set(openingCards.map((item) => item.card_id)),
+      ];
+
+      let activityCards: { id: string; name: string }[] = [];
+
+      if (cardIds.length > 0) {
+        const { data } = await supabase
+          .from('cards')
+          .select('id, name')
+          .in('id', cardIds);
+
+        activityCards = data ?? [];
+      }
+
+      const boosterNames = new Map(
+        (boostersResult.data ?? []).map((booster) => [
+          booster.id,
+          booster.name,
+        ])
+      );
+
+      const cardNames = new Map(
+        activityCards.map((card) => [card.id, card.name])
+      );
+
+      recentOpenings = openings.map((opening) => ({
+        id: opening.id,
+        opened_at: opening.opened_at,
+        energy_spent: opening.energy_spent,
+        boosterName:
+          boosterNames.get(opening.booster_id) ?? 'Booster',
+        cards: openingCards
+          .filter((item) => item.opening_id === opening.id)
+          .map((item) => cardNames.get(item.card_id) ?? 'Carte inconnue'),
+      }));
+    }
   }
 
   const progress =
@@ -122,8 +209,12 @@ export default async function Home() {
     <main className="page-container home-dashboard">
       <header className="home-topbar">
         <div>
-          <span className="home-kicker">MMI POCKET / ESPACE PERSONNEL</span>
-          <h1>Salut {username} <span>✳</span></h1>
+          <span className="home-kicker">
+            MMI POCKET / ESPACE PERSONNEL
+          </span>
+          <h1>
+            Salut {username} <span>✳</span>
+          </h1>
           <p>Prêt à faire grandir ta collection ?</p>
         </div>
 
@@ -156,7 +247,10 @@ export default async function Home() {
           </p>
 
           <div className="home-hero-actions">
-            <Link href={user ? '/boosters' : '/login'} className="home-primary-button">
+            <Link
+              href={user ? '/boosters' : '/login'}
+              className="home-primary-button"
+            >
               <Gift size={17} /> Ouvrir un booster
               <ArrowRight size={16} />
             </Link>
@@ -180,7 +274,11 @@ export default async function Home() {
           <div className="home-floating-card home-floating-front">
             <span>ÉDITION 2026–2029</span>
             <div className="home-card-symbol">✳</div>
-            <strong>UNIVERS<br />MMI</strong>
+            <strong>
+              UNIVERS
+              <br />
+              MMI
+            </strong>
             <small>CARTE À DÉCOUVRIR</small>
           </div>
 
@@ -191,35 +289,59 @@ export default async function Home() {
 
       <section className="home-resource-grid">
         <article className="home-resource-card energy">
-          <div className="home-resource-icon"><Bolt size={21} /></div>
+          <div className="home-resource-icon">
+            <Bolt size={21} />
+          </div>
           <div>
             <span>ÉNERGIE</span>
             <strong>{user ? `${energy} / ${maxEnergy}` : '—'}</strong>
             <small>Pour ouvrir tes boosters</small>
           </div>
           <div className="home-resource-progress">
-            <span style={{ width: `${maxEnergy > 0 ? Math.min(100, (energy / maxEnergy) * 100) : 0}%` }} />
+            <span
+              style={{
+                width: `${
+                  maxEnergy > 0
+                    ? Math.min(100, (energy / maxEnergy) * 100)
+                    : 0
+                }%`,
+              }}
+            />
           </div>
         </article>
 
         <article className="home-resource-card money">
-          <div className="home-resource-icon"><Coins size={21} /></div>
+          <div className="home-resource-icon">
+            <Coins size={21} />
+          </div>
           <div>
             <span>PIÈCES</span>
-            <strong>{user ? coins.toLocaleString('fr-FR') : '—'}</strong>
+            <strong>
+              {user ? coins.toLocaleString('fr-FR') : '—'}
+            </strong>
             <small>Ton portefeuille</small>
           </div>
-          <Link href="/market" aria-label="Aller au marché"><ArrowRight size={18} /></Link>
+          <Link href="/market" aria-label="Aller au marché">
+            <ArrowRight size={18} />
+          </Link>
         </article>
 
         <article className="home-resource-card cards">
-          <div className="home-resource-icon"><BookOpen size={21} /></div>
+          <div className="home-resource-icon">
+            <BookOpen size={21} />
+          </div>
           <div>
             <span>CARTES UNIQUES</span>
             <strong>{user ? `${ownedUnique} / ${totalCards}` : '—'}</strong>
-            <small>{user ? `${totalCopies} exemplaires au total` : 'Connecte-toi pour commencer'}</small>
+            <small>
+              {user
+                ? `${totalCopies} exemplaires au total`
+                : 'Connecte-toi pour commencer'}
+            </small>
           </div>
-          <Link href="/collection" aria-label="Voir la collection"><ArrowRight size={18} /></Link>
+          <Link href="/collection" aria-label="Voir la collection">
+            <ArrowRight size={18} />
+          </Link>
         </article>
       </section>
 
@@ -238,7 +360,11 @@ export default async function Home() {
           <div className="home-progress-copy">
             <div>
               <strong>{user ? `${progress}%` : 'Bienvenue !'}</strong>
-              <span>{user ? 'de la collection complétée' : 'Connecte-toi pour suivre ta progression'}</span>
+              <span>
+                {user
+                  ? 'de la collection complétée'
+                  : 'Connecte-toi pour suivre ta progression'}
+              </span>
             </div>
             <p>
               {user
@@ -252,8 +378,14 @@ export default async function Home() {
           </div>
 
           <div className="home-progress-footer">
-            <span>{user ? `${ownedUnique} cartes obtenues` : 'MMI Pocket'}</span>
-            <span>{user ? `${Math.max(0, totalCards - ownedUnique)} restantes` : `${activeExtensions} extensions`}</span>
+            <span>
+              {user ? `${ownedUnique} cartes obtenues` : 'MMI Pocket'}
+            </span>
+            <span>
+              {user
+                ? `${Math.max(0, totalCards - ownedUnique)} restantes`
+                : `${activeExtensions} extensions`}
+            </span>
           </div>
         </div>
       </section>
@@ -268,26 +400,46 @@ export default async function Home() {
 
         <div className="home-shortcuts-grid">
           <Link href="/boosters" className="home-shortcut booster">
-            <span className="home-shortcut-icon"><Gift size={23} /></span>
-            <span><strong>Ouvrir des boosters</strong><small>Découvre de nouvelles cartes</small></span>
+            <span className="home-shortcut-icon">
+              <Gift size={23} />
+            </span>
+            <span>
+              <strong>Ouvrir des boosters</strong>
+              <small>Découvre de nouvelles cartes</small>
+            </span>
             <ArrowRight size={18} />
           </Link>
 
           <Link href="/market" className="home-shortcut market">
-            <span className="home-shortcut-icon"><ShoppingBag size={23} /></span>
-            <span><strong>Marché des joueurs</strong><small>Acheter et vendre des cartes</small></span>
+            <span className="home-shortcut-icon">
+              <ShoppingBag size={23} />
+            </span>
+            <span>
+              <strong>Marché des joueurs</strong>
+              <small>Acheter et vendre des cartes</small>
+            </span>
             <ArrowRight size={18} />
           </Link>
 
           <Link href="/extensions" className="home-shortcut extensions">
-            <span className="home-shortcut-icon"><LayoutGrid size={23} /></span>
-            <span><strong>Explorer les extensions</strong><small>Découvre les différentes séries</small></span>
+            <span className="home-shortcut-icon">
+              <LayoutGrid size={23} />
+            </span>
+            <span>
+              <strong>Explorer les extensions</strong>
+              <small>Découvre les différentes séries</small>
+            </span>
             <ArrowRight size={18} />
           </Link>
 
           <Link href="/classement" className="home-shortcut ranking">
-            <span className="home-shortcut-icon"><Trophy size={23} /></span>
-            <span><strong>Classement</strong><small>Compare ta collection aux autres</small></span>
+            <span className="home-shortcut-icon">
+              <Trophy size={23} />
+            </span>
+            <span>
+              <strong>Classement</strong>
+              <small>Compare ta collection aux autres</small>
+            </span>
             <ArrowRight size={18} />
           </Link>
         </div>
@@ -309,38 +461,106 @@ export default async function Home() {
             <Sparkles size={25} />
             <strong>Ta collection t&apos;attend</strong>
             <p>Connecte-toi pour découvrir tes cartes.</p>
-            <Link href="/login">Se connecter <ArrowRight size={15} /></Link>
+            <Link href="/login">
+              Se connecter <ArrowRight size={15} />
+            </Link>
           </div>
         ) : featuredCards.length === 0 ? (
           <div className="home-empty-cards">
             <Gift size={25} />
             <strong>Aucune carte disponible pour le moment</strong>
-            <p>Les cartes apparaîtront ici dès que l&apos;extension sera publiée.</p>
+            <p>
+              Les cartes apparaîtront ici dès que l&apos;extension sera publiée.
+            </p>
           </div>
         ) : (
           <div className="home-featured-grid">
-            {featuredCards.map((card) => {
-              return (
-                <Link
-                  href="/collection"
-                  className={`home-featured-card rarity-${card.rarity}`}
-                  key={card.id}
-                >
-                  <div className="home-featured-image">
-                    {card.image_url ? (
-                      <img src={card.image_url} alt={card.name} />
-                    ) : (
-                      <span>✦</span>
-                    )}
-                  </div>
-                  <div className="home-featured-info">
-                    <span>{rarityLabels[card.rarity] ?? card.rarity}</span>
-                    <strong>{card.name}</strong>
-                    <small>Carte #{card.card_number ?? '—'}</small>
-                  </div>
-                </Link>
-              );
-            })}
+            {featuredCards.map((card) => (
+              <Link
+                href="/collection"
+                className={`home-featured-card rarity-${card.rarity}`}
+                key={card.id}
+              >
+                <div className="home-featured-image">
+                  {card.image_url ? (
+                    <img src={card.image_url} alt={card.name} />
+                  ) : (
+                    <span>✦</span>
+                  )}
+                </div>
+                <div className="home-featured-info">
+                  <span>
+                    {rarityLabels[card.rarity] ?? card.rarity}
+                  </span>
+                  <strong>{card.name}</strong>
+                  <small>Carte #{card.card_number ?? '—'}</small>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ACTIVITÉ RÉCENTE */}
+      <section className="home-activity-section">
+        <div className="home-section-heading">
+          <div>
+            <span className="home-kicker">TON HISTORIQUE</span>
+            <h2>Activité récente</h2>
+          </div>
+          <span className="home-activity-count">
+            {recentOpenings.length} ouverture
+            {recentOpenings.length > 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {!user ? (
+          <div className="home-activity-empty">
+            Connecte-toi pour retrouver ton activité.
+          </div>
+        ) : recentOpenings.length === 0 ? (
+          <div className="home-activity-empty">
+            <Gift size={22} />
+            <strong>Pas encore d&apos;activité</strong>
+            <span>
+              Ouvre ton premier booster pour commencer ton historique !
+            </span>
+            <Link href="/boosters">
+              Découvrir les boosters <ArrowRight size={15} />
+            </Link>
+          </div>
+        ) : (
+          <div className="home-activity-list">
+            {recentOpenings.map((opening) => (
+              <article className="home-activity-item" key={opening.id}>
+                <div className="home-activity-icon">
+                  <Gift size={20} />
+                </div>
+
+                <div className="home-activity-content">
+                  <strong>
+                    Booster ouvert : {opening.boosterName}
+                  </strong>
+                  <span>
+                    {opening.cards.length} carte
+                    {opening.cards.length > 1 ? 's' : ''} obtenue
+                    {opening.cards.length > 1 ? 's' : ''}
+                    {' · '}
+                    {opening.energy_spent} énergie dépensée
+                  </span>
+                  <small>{opening.cards.join(' · ')}</small>
+                </div>
+
+                <time dateTime={opening.opened_at}>
+                  {new Date(opening.opened_at).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </time>
+              </article>
+            ))}
           </div>
         )}
       </section>
