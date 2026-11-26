@@ -81,7 +81,7 @@ export function HomeEnergyDisplay({
       const remaining = Math.max(
         0,
         Math.ceil(
-          (new Date(nextEnergyAt).getTime() - Date.now()) / 1000
+          (new Date(nextEnergyAt!).getTime() - Date.now()) / 1000
         )
       );
 
