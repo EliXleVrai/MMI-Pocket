@@ -33,6 +33,7 @@ export default async function CollectionPage() {
       buyback_price,
       extension_id,
       is_active,
+      genre,
       extensions (
         id,
         name
