@@ -83,6 +83,7 @@ export default async function CollectionPage() {
         description: card.description,
         image_url: card.image_url,
         rarity: card.rarity,
+        genre: card.genre ?? 'Personnage',
         card_number: card.card_number,
         quantity: ownedQuantities.get(card.id) ?? 0,
         buyback_price: card.buyback_price ?? 0,
