@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
@@ -22,6 +21,7 @@ export function ExtensionManager() {
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -41,7 +41,7 @@ export function ExtensionManager() {
   }
 
   useEffect(() => {
-    loadExtensions();
+    void loadExtensions();
   }, []);
 
   function createSlug(value: string) {
@@ -52,6 +52,27 @@ export function ExtensionManager() {
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+  }
+
+  function resetForm() {
+    setName('');
+    setDescription('');
+    setImageUrl('');
+    setImageFile(null);
+    setEditingId(null);
+  }
+
+  function startEditing(extension: Extension) {
+    setEditingId(extension.id);
+    setName(extension.name);
+    setDescription(extension.description ?? '');
+    setImageUrl(extension.cover_url ?? '');
+    setImageFile(null);
+    setError('');
+    setMessage('');
+
+    document.getElementById('extension-manager-form')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -107,11 +128,17 @@ export function ExtensionManager() {
       let suffix = 2;
 
       while (true) {
-        const { data: existing, error: checkError } = await supabase
+        let query = supabase
           .from('extensions')
           .select('id')
-          .eq('slug', slug)
-          .maybeSingle();
+          .eq('slug', slug);
+
+        if (editingId) {
+          query = query.neq('id', editingId);
+        }
+
+        const { data: existing, error: checkError } =
+          await query.maybeSingle();
 
         if (checkError) throw checkError;
         if (!existing) break;
@@ -120,24 +147,36 @@ export function ExtensionManager() {
         suffix += 1;
       }
 
-      const { error: insertError } = await supabase
-        .from('extensions')
-        .insert({
-          name: cleanName,
-          slug,
-          description: description.trim() || null,
-          cover_url: coverUrl,
-          is_active: true,
-        });
+      const values = {
+        name: cleanName,
+        slug,
+        description: description.trim() || null,
+        cover_url: coverUrl,
+      };
 
-      if (insertError) throw insertError;
+      if (editingId) {
+        const { error: updateError } = await supabase
+          .from('extensions')
+          .update(values)
+          .eq('id', editingId);
 
-      setName('');
-      setDescription('');
-      setImageUrl('');
-      setImageFile(null);
-      setMessage('Extension créée avec succès !');
+        if (updateError) throw updateError;
 
+        setMessage('Extension modifiée avec succès !');
+      } else {
+        const { error: insertError } = await supabase
+          .from('extensions')
+          .insert({
+            ...values,
+            is_active: true,
+          });
+
+        if (insertError) throw insertError;
+
+        setMessage('Extension créée avec succès !');
+      }
+
+      resetForm();
       await loadExtensions();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
@@ -161,12 +200,44 @@ export function ExtensionManager() {
     }
 
     setMessage(
-      extension.is_active
-        ? 'Extension désactivée.'
-        : 'Extension activée.'
+      extension.is_active ? 'Extension désactivée.' : 'Extension activée.'
     );
 
     await loadExtensions();
+  }
+
+  async function deleteExtension(extension: Extension) {
+    const confirmed = window.confirm(
+      `Supprimer définitivement l'extension "${extension.name}" ?\n\nCette opération peut également supprimer ses cartes et ses boosters si aucune donnée ne les référence.`
+    );
+
+    if (!confirmed) return;
+
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('extensions')
+        .delete()
+        .eq('id', extension.id);
+
+      if (deleteError) {
+        throw new Error(
+          'Suppression impossible : cette extension possède probablement des cartes ou des boosters utilisés dans l’historique ou les collections des joueurs. Désactive-la plutôt que de perdre ces données.'
+        );
+      }
+
+      if (editingId === extension.id) resetForm();
+
+      setMessage('Extension supprimée.');
+      await loadExtensions();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de suppression.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -179,8 +250,12 @@ export function ExtensionManager() {
         <span>{extensions.length} extension(s)</span>
       </div>
 
-      <form className="admin-manager-form" onSubmit={handleSubmit}>
-        <h3>Créer une extension</h3>
+      <form
+        id="extension-manager-form"
+        className="admin-manager-form"
+        onSubmit={handleSubmit}
+      >
+        <h3>{editingId ? 'Modifier une extension' : 'Créer une extension'}</h3>
 
         <label>
           Nom de l’extension
@@ -242,8 +317,22 @@ export function ExtensionManager() {
         )}
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Création...' : 'Créer l’extension'}
+          {loading
+            ? 'Enregistrement...'
+            : editingId
+              ? 'Enregistrer les modifications'
+              : 'Créer l’extension'}
         </button>
+
+        {editingId && (
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={resetForm}
+          >
+            Annuler la modification
+          </button>
+        )}
 
         {error && <p className="form-error">{error}</p>}
         {message && <p className="form-success">{message}</p>}
@@ -271,18 +360,37 @@ export function ExtensionManager() {
             <div className="admin-extension-info">
               <strong>{extension.name}</strong>
               <span>{extension.slug}</span>
-              <span>
-                {extension.is_active ? 'Active' : 'Désactivée'}
-              </span>
+              <span>{extension.is_active ? 'Active' : 'Désactivée'}</span>
             </div>
 
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => toggleExtension(extension)}
-            >
-              {extension.is_active ? 'Désactiver' : 'Activer'}
-            </button>
+            <div className="admin-extension-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => startEditing(extension)}
+                disabled={loading}
+              >
+                Modifier
+              </button>
+
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void toggleExtension(extension)}
+                disabled={loading}
+              >
+                {extension.is_active ? 'Désactiver' : 'Activer'}
+              </button>
+
+              <button
+                type="button"
+                className="admin-delete-button"
+                onClick={() => void deleteExtension(extension)}
+                disabled={loading}
+              >
+                Supprimer
+              </button>
+            </div>
           </article>
         ))}
       </div>
