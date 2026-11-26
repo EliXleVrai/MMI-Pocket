@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CardCreator } from '@/components/card-creator';
+import { CardManager } from '@/components/card-manager';
 import { ExtensionManager } from '@/components/extension-manager';
 import { BoosterManager } from '@/components/booster-manager';
 
@@ -45,6 +46,10 @@ export default async function AdminPage() {
       <div className="admin-dashboard-divider" />
 
       <CardCreator />
+
+      <div className="admin-dashboard-divider" />
+
+      <CardManager />
     </main>
   );
 }
