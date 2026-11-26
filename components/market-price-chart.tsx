@@ -12,14 +12,33 @@ export function MarketPriceChart({ points }: { points: PricePoint[] }) {
   );
 
   const latest = sorted[sorted.length - 1];
+  const first = sorted[0];
+
   const values = sorted.map((p) => Number(p.average_price));
   const min = values.length ? Math.min(...values) : 0;
   const max = values.length ? Math.max(...values) : 0;
-  const range = Math.max(max - min, 1);
+
+  const currentPrice = latest ? Number(latest.average_price) : 0;
+  const firstPrice = first ? Number(first.average_price) : 0;
+
+  const evolution =
+    firstPrice > 0
+      ? ((currentPrice - firstPrice) / firstPrice) * 100
+      : 0;
+
+  const totalSales = sorted.reduce(
+    (sum, p) => sum + Number(p.sales_count),
+    0
+  );
+
+  const totalQuantity = sorted.reduce(
+    (sum, p) => sum + Number(p.quantity_sold),
+    0
+  );
 
   const coords = sorted.map((point, index) => ({
     x: sorted.length === 1 ? 150 : 8 + (index / (sorted.length - 1)) * 284,
-    y: 76 - ((Number(point.average_price) - min) / range) * 58,
+    y: 76 - ((Number(point.average_price) - min) / Math.max(max - min, 1)) * 58,
     point,
   }));
 
@@ -27,36 +46,146 @@ export function MarketPriceChart({ points }: { points: PricePoint[] }) {
     .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
     .join(' ');
 
+  const formatPrice = (value: number) =>
+    value.toLocaleString('fr-FR');
+
   return (
     <div style={{
-      marginTop: 8,
-      padding: 12,
-      borderRadius: 12,
+      marginTop: 12,
+      padding: 14,
+      borderRadius: 14,
       background: '#f7faf6',
-      border: '1px solid #e5eee3'
+      border: '1px solid #e5eee3',
     }}>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        marginBottom: 14,
       }}>
-        <strong style={{ color: '#355640', fontSize: 12 }}>
-          Cours sur 7 jours
+        <strong style={{ color: '#355640', fontSize: 13 }}>
+          📊 Fiche de marché
         </strong>
 
-        {latest && (
-          <strong style={{ color: '#25804a', fontSize: 12 }}>
-            {Number(latest.average_price).toLocaleString('fr-FR')} pièces
-          </strong>
-        )}
+        <span style={{
+          fontSize: 10,
+          color: '#89958b',
+          background: '#eaf1e8',
+          padding: '4px 8px',
+          borderRadius: 20,
+        }}>
+          7 derniers jours
+        </span>
       </div>
 
       {sorted.length === 0 ? (
-        <p style={{ color: '#89958b', fontSize: 11 }}>
-          Pas encore de vente enregistrée.
+        <p style={{
+          color: '#89958b',
+          fontSize: 12,
+          textAlign: 'center',
+          padding: 12,
+        }}>
+          Pas encore de vente enregistrée pour cette carte.
         </p>
       ) : (
         <>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 8,
+            marginBottom: 14,
+          }}>
+            <div style={{
+              background: 'white',
+              border: '1px solid #e5eee3',
+              borderRadius: 10,
+              padding: 10,
+            }}>
+              <span style={{ color: '#89958b', fontSize: 10 }}>
+                Cours actuel
+              </span>
+              <div style={{
+                color: '#355640',
+                fontWeight: 800,
+                fontSize: 17,
+                marginTop: 3,
+              }}>
+                {formatPrice(currentPrice)}
+                <span style={{ fontSize: 10, fontWeight: 500 }}> pièces</span>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'white',
+              border: '1px solid #e5eee3',
+              borderRadius: 10,
+              padding: 10,
+            }}>
+              <span style={{ color: '#89958b', fontSize: 10 }}>
+                Évolution
+              </span>
+              <div style={{
+                color: evolution > 0 ? '#25804a' : evolution < 0 ? '#c34b4b' : '#89958b',
+                fontWeight: 800,
+                fontSize: 17,
+                marginTop: 3,
+              }}>
+                {evolution > 0 ? '+' : ''}{evolution.toFixed(1).replace('.', ',')} %
+              </div>
+            </div>
+
+            <div style={{
+              background: 'white',
+              border: '1px solid #e5eee3',
+              borderRadius: 10,
+              padding: 10,
+            }}>
+              <span style={{ color: '#89958b', fontSize: 10 }}>
+                Transactions
+              </span>
+              <div style={{
+                color: '#355640',
+                fontWeight: 800,
+                fontSize: 17,
+                marginTop: 3,
+              }}>
+                {totalSales}
+              </div>
+            </div>
+
+            <div style={{
+              background: 'white',
+              border: '1px solid #e5eee3',
+              borderRadius: 10,
+              padding: 10,
+            }}>
+              <span style={{ color: '#89958b', fontSize: 10 }}>
+                Cartes vendues
+              </span>
+              <div style={{
+                color: '#355640',
+                fontWeight: 800,
+                fontSize: 17,
+                marginTop: 3,
+              }}>
+                {totalQuantity}
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: 5,
+          }}>
+            <strong style={{ color: '#355640', fontSize: 11 }}>
+              Historique des cours
+            </strong>
+            <span style={{ color: '#89958b', fontSize: 10 }}>
+              Prix moyen journalier
+            </span>
+          </div>
+
           <svg
             viewBox="0 0 300 96"
             role="img"
@@ -93,7 +222,7 @@ export function MarketPriceChart({ points }: { points: PricePoint[] }) {
             ))}
 
             <text x="8" y="92" fill="#89958b" fontSize="9">
-              {sorted[0].sale_date.slice(5).replace('-', '/')}
+              {first.sale_date.slice(5).replace('-', '/')}
             </text>
 
             <text x="292" y="92" fill="#89958b"
@@ -105,16 +234,22 @@ export function MarketPriceChart({ points }: { points: PricePoint[] }) {
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
+            gap: 6,
+            paddingTop: 10,
+            borderTop: '1px solid #e5eee3',
             color: '#89958b',
-            fontSize: 10
+            fontSize: 10,
           }}>
-            <span>Min. {min.toLocaleString('fr-FR')}</span>
             <span>
-              {sorted.reduce((sum, p) =>
-                sum + Number(p.quantity_sold), 0
-              )} carte(s) vendue(s)
+              Min. <strong style={{ color: '#355640' }}>
+                {formatPrice(min)}
+              </strong>
             </span>
-            <span>Max. {max.toLocaleString('fr-FR')}</span>
+            <span>
+              Max. <strong style={{ color: '#355640' }}>
+                {formatPrice(max)}
+              </strong>
+            </span>
           </div>
         </>
       )}
