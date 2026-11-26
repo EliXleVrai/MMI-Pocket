@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { MarketPriceChart } from '@/components/market-price-chart';
 
 type MarketCard = {
   id: string;
@@ -28,7 +29,16 @@ type OwnedCard = MarketCard & {
   quantity: number;
 };
 
+type PricePoint = {
+  card_id: string;
+  sale_date: string;
+  average_price: number;
+  quantity_sold: number;
+  sales_count: number;
+};
+
 type Props = {
+  priceHistory: PricePoint[];
   initialListings: Listing[];
   ownedCards: OwnedCard[];
   currentUserId: string;
@@ -46,6 +56,7 @@ export function MarketView({
   initialListings,
   ownedCards,
   currentUserId,
+  priceHistory,
 }: Props) {
   const router = useRouter();
   const supabase = createClient();
@@ -341,6 +352,11 @@ export function MarketView({
                       <p className="market-total">
                         Total : {(amount * listing.unit_price).toLocaleString('fr-FR')} pièces
                       </p>
+                      <MarketPriceChart
+                        points={priceHistory.filter(
+                          (point) => point.card_id === listing.card_id
+                        )}
+                      />
                     </div>
                   </article>
                 );
