@@ -38,6 +38,25 @@ type RecentOpening = {
   cards: string[];
 };
 
+type RecentMarketTransaction = {
+  id: string;
+  sold_at: string;
+  kind: 'purchase' | 'sale';
+  cardName: string;
+  quantity: number;
+  total_amount: number;
+  seller_earnings: number;
+};
+
+type RecentActivity = {
+  id: string;
+  date: string;
+  kind: 'booster' | 'purchase' | 'sale';
+  title: string;
+  description: string;
+  detail?: string;
+};
+
 export default async function Home() {
   const supabase = await createClient();
 
@@ -56,6 +75,7 @@ export default async function Home() {
 
   let featuredCards: FeaturedCard[] = [];
   let recentOpenings: RecentOpening[] = [];
+  let recentMarketTransactions: RecentMarketTransaction[] = [];
 
   if (user) {
     const [
@@ -132,13 +152,14 @@ export default async function Home() {
       featuredCards = [...featuredCards, ...missing];
     }
 
-    // ACTIVITÉ RÉCENTE : les 5 dernières ouvertures
+    // ACTIVITÉ RÉCENTE : ouvertures de boosters
+
     const { data: openings } = await supabase
       .from('booster_openings')
       .select('id, booster_id, energy_spent, opened_at')
       .eq('user_id', user.id)
       .order('opened_at', { ascending: false })
-      .limit(5);
+      .limit(10);
 
     if (openings && openings.length > 0) {
       const openingIds = openings.map((opening) => opening.id);
@@ -198,7 +219,90 @@ export default async function Home() {
           .map((item) => cardNames.get(item.card_id) ?? 'Carte inconnue'),
       }));
     }
+
+    // ACTIVITÉ RÉCENTE : achats et ventes du marché
+
+    const { data: marketSales } = await supabase
+      .from('market_sales')
+      .select(
+        'id, buyer_id, seller_id, card_id, quantity, total_amount, seller_earnings, sold_at'
+      )
+      .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+      .order('sold_at', { ascending: false })
+      .limit(10);
+
+    if (marketSales && marketSales.length > 0) {
+      const cardIds = [
+        ...new Set(marketSales.map((sale) => sale.card_id)),
+      ];
+
+      const { data: transactionCards } = await supabase
+        .from('cards')
+        .select('id, name')
+        .in('id', cardIds);
+
+      const cardNames = new Map(
+        (transactionCards ?? []).map((card) => [
+          card.id,
+          card.name,
+        ])
+      );
+
+      recentMarketTransactions = marketSales.map((sale) => ({
+        id: sale.id,
+        sold_at: sale.sold_at,
+        kind: sale.buyer_id === user.id ? 'purchase' : 'sale',
+        cardName: cardNames.get(sale.card_id) ?? 'Carte inconnue',
+        quantity: sale.quantity,
+        total_amount: sale.total_amount,
+        seller_earnings: sale.seller_earnings,
+      }));
+    }
   }
+
+  // FUSION DES ACTIVITÉS ET TRI CHRONOLOGIQUE
+
+  const recentActivity: RecentActivity[] = [
+    ...recentOpenings.map((opening) => ({
+      id: `booster-${opening.id}`,
+      date: opening.opened_at,
+      kind: 'booster' as const,
+      title: `Booster ouvert : ${opening.boosterName}`,
+      description: `${opening.cards.length} carte${
+        opening.cards.length > 1 ? 's' : ''
+      } obtenue${opening.cards.length > 1 ? 's' : ''} · ${
+        opening.energy_spent
+      } énergie dépensée`,
+      detail: opening.cards.join(' · '),
+    })),
+
+    ...recentMarketTransactions.map((transaction) => ({
+      id: `market-${transaction.id}`,
+      date: transaction.sold_at,
+      kind: transaction.kind,
+      title:
+        transaction.kind === 'purchase'
+          ? `Carte achetée : ${transaction.cardName}`
+          : `Carte vendue : ${transaction.cardName}`,
+      description:
+        transaction.kind === 'purchase'
+          ? `${transaction.quantity} exemplaire${
+              transaction.quantity > 1 ? 's' : ''
+            } · ${Number(transaction.total_amount).toLocaleString(
+              'fr-FR'
+            )} pièces dépensées`
+          : `${transaction.quantity} exemplaire${
+              transaction.quantity > 1 ? 's' : ''
+            } · ${Number(transaction.seller_earnings).toLocaleString(
+              'fr-FR'
+            )} pièces reçues`,
+    })),
+  ]
+    .sort(
+      (a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+    .slice(0, 10);
 
   const progress =
     totalCards > 0
@@ -502,6 +606,7 @@ export default async function Home() {
       </section>
 
       {/* ACTIVITÉ RÉCENTE */}
+
       <section className="home-activity-section">
         <div className="home-section-heading">
           <div>
@@ -509,8 +614,8 @@ export default async function Home() {
             <h2>Activité récente</h2>
           </div>
           <span className="home-activity-count">
-            {recentOpenings.length} ouverture
-            {recentOpenings.length > 1 ? 's' : ''}
+            {recentActivity.length} activité
+            {recentActivity.length > 1 ? 's' : ''}
           </span>
         </div>
 
@@ -518,12 +623,13 @@ export default async function Home() {
           <div className="home-activity-empty">
             Connecte-toi pour retrouver ton activité.
           </div>
-        ) : recentOpenings.length === 0 ? (
+        ) : recentActivity.length === 0 ? (
           <div className="home-activity-empty">
             <Gift size={22} />
             <strong>Pas encore d&apos;activité</strong>
             <span>
-              Ouvre ton premier booster pour commencer ton historique !
+              Ouvre ton premier booster ou fais un échange au marché pour
+              commencer ton historique !
             </span>
             <Link href="/boosters">
               Découvrir les boosters <ArrowRight size={15} />
@@ -531,28 +637,31 @@ export default async function Home() {
           </div>
         ) : (
           <div className="home-activity-list">
-            {recentOpenings.map((opening) => (
-              <article className="home-activity-item" key={opening.id}>
+            {recentActivity.map((activity) => (
+              <article
+                className="home-activity-item"
+                key={activity.id}
+              >
                 <div className="home-activity-icon">
-                  <Gift size={20} />
+                  {activity.kind === 'booster' ? (
+                    <Gift size={20} />
+                  ) : activity.kind === 'purchase' ? (
+                    <ShoppingBag size={20} />
+                  ) : (
+                    <Coins size={20} />
+                  )}
                 </div>
 
                 <div className="home-activity-content">
-                  <strong>
-                    Booster ouvert : {opening.boosterName}
-                  </strong>
-                  <span>
-                    {opening.cards.length} carte
-                    {opening.cards.length > 1 ? 's' : ''} obtenue
-                    {opening.cards.length > 1 ? 's' : ''}
-                    {' · '}
-                    {opening.energy_spent} énergie dépensée
-                  </span>
-                  <small>{opening.cards.join(' · ')}</small>
+                  <strong>{activity.title}</strong>
+                  <span>{activity.description}</span>
+                  {activity.detail && (
+                    <small>{activity.detail}</small>
+                  )}
                 </div>
 
-                <time dateTime={opening.opened_at}>
-                  {new Date(opening.opened_at).toLocaleDateString('fr-FR', {
+                <time dateTime={activity.date}>
+                  {new Date(activity.date).toLocaleDateString('fr-FR', {
                     day: '2-digit',
                     month: 'short',
                     hour: '2-digit',
