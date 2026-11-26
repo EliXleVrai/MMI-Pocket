@@ -6,6 +6,7 @@ import { CardManager } from '@/components/card-manager';
 import { ExtensionManager } from '@/components/extension-manager';
 import { BoosterManager } from '@/components/booster-manager';
 import { PlayerManager } from '@/components/player-manager';
+import { AdminDashboard } from '@/components/admin-dashboard';
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -38,6 +39,10 @@ export default async function AdminPage() {
         <h2>Bienvenue, @{profile.username}</h2>
         <p>Tu es connecté en tant qu&apos;administrateur.</p>
       </section>
+
+      <AdminDashboard />
+
+      <div className="admin-dashboard-divider" />
 
       <PlayerManager />
 
