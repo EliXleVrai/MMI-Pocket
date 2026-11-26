@@ -21,6 +21,7 @@ type Card = {
   card_number: number | null;
   extension_id: string;
   is_active: boolean;
+  buyback_price: number;
 };
 
 type Extension = {
@@ -43,6 +44,7 @@ export function CardManager() {
   const [rarity, setRarity] = useState<Rarity>('common');
   const [imageUrl, setImageUrl] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [buybackPrice, setBuybackPrice] = useState('0');
 
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -55,9 +57,10 @@ export function CardManager() {
       supabase
         .from('cards')
         .select(
-          'id, name, description, image_url, rarity, card_number, extension_id, is_active'
+          'id, name, description, image_url, rarity, card_number, extension_id, is_active, buyback_price'
         )
         .order('created_at', { ascending: false }),
+
       supabase
         .from('extensions')
         .select('id, name')
@@ -93,6 +96,7 @@ export function CardManager() {
     setRarity(card.rarity);
     setImageUrl(card.image_url ?? '');
     setImageFile(null);
+    setBuybackPrice(String(card.buyback_price ?? 0));
     setError('');
     setMessage('');
 
@@ -156,9 +160,20 @@ export function CardManager() {
       return;
     }
 
+    const parsedBuybackPrice = Number(buybackPrice);
+
+    if (
+      !Number.isFinite(parsedBuybackPrice) ||
+      parsedBuybackPrice < 0
+    ) {
+      setError('Le prix de rachat doit être un nombre positif ou nul.');
+      return;
+    }
+
     if (imageUrl.trim()) {
       try {
         const parsed = new URL(imageUrl.trim());
+
         if (!['http:', 'https:'].includes(parsed.protocol)) {
           throw new Error();
         }
@@ -219,6 +234,7 @@ export function CardManager() {
         extension_id: extensionId,
         rarity,
         image_url: finalImageUrl,
+        buyback_price: Math.floor(parsedBuybackPrice),
       })
       .eq('id', editingCard.id);
 
@@ -300,8 +316,11 @@ export function CardManager() {
       <div className="admin-section-heading">
         <div>
           <h2>Cartes</h2>
-          <p>Modifie, active, désactive ou supprime les cartes du jeu.</p>
+          <p>
+            Modifie, active, désactive ou supprime les cartes du jeu.
+          </p>
         </div>
+
         <span>{cards.length} carte(s)</span>
       </div>
 
@@ -316,7 +335,10 @@ export function CardManager() {
         >
           <h3>Modifier une carte</h3>
 
-          <label htmlFor="edit-card-name">Nom de la carte</label>
+          <label htmlFor="edit-card-name">
+            Nom de la carte
+          </label>
+
           <input
             id="edit-card-name"
             value={name}
@@ -325,7 +347,10 @@ export function CardManager() {
             required
           />
 
-          <label htmlFor="edit-card-description">Description</label>
+          <label htmlFor="edit-card-description">
+            Description
+          </label>
+
           <textarea
             id="edit-card-description"
             value={description}
@@ -333,7 +358,10 @@ export function CardManager() {
             rows={4}
           />
 
-          <label htmlFor="edit-card-extension">Extension</label>
+          <label htmlFor="edit-card-extension">
+            Extension
+          </label>
+
           <select
             id="edit-card-extension"
             value={extensionId}
@@ -347,7 +375,10 @@ export function CardManager() {
             ))}
           </select>
 
-          <label htmlFor="edit-card-rarity">Rareté</label>
+          <label htmlFor="edit-card-rarity">
+            Rareté
+          </label>
+
           <select
             id="edit-card-rarity"
             value={rarity}
@@ -362,7 +393,31 @@ export function CardManager() {
 
           <RarityBadge rarity={rarity} />
 
-          <label htmlFor="edit-card-image-file">Importer une nouvelle image</label>
+          <div className="buyback-price-field">
+            <label htmlFor="edit-card-buyback">
+              Prix de rachat par le serveur (pièces)
+            </label>
+
+            <input
+              id="edit-card-buyback"
+              type="number"
+              min="0"
+              step="1"
+              value={buybackPrice}
+              onChange={(e) => setBuybackPrice(e.target.value)}
+              required
+            />
+
+            <small>
+              Nombre de pièces que le serveur versera lorsqu’un joueur
+              vendra cette carte.
+            </small>
+          </div>
+
+          <label htmlFor="edit-card-image-file">
+            Importer une nouvelle image
+          </label>
+
           <input
             id="edit-card-image-file"
             type="file"
@@ -371,9 +426,13 @@ export function CardManager() {
               handleImageChange(e.target.files?.[0] ?? null)
             }
           />
+
           <small>PNG, JPG ou WEBP — 5 Mo maximum.</small>
 
-          <label htmlFor="edit-card-image-url">Ou utiliser une URL</label>
+          <label htmlFor="edit-card-image-url">
+            Ou utiliser une URL
+          </label>
+
           <input
             id="edit-card-image-url"
             type="url"
@@ -399,7 +458,9 @@ export function CardManager() {
               className="button-primary"
               disabled={saving}
             >
-              {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+              {saving
+                ? 'Enregistrement...'
+                : 'Enregistrer les modifications'}
             </button>
 
             <button
@@ -446,6 +507,11 @@ export function CardManager() {
                 </span>
 
                 <RarityBadge rarity={card.rarity} />
+
+                <span className="admin-card-buyback">
+                  <strong>Rachat serveur :</strong>{' '}
+                  {card.buyback_price ?? 0} pièces
+                </span>
 
                 <span>
                   {card.card_number !== null
