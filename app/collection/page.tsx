@@ -12,41 +12,47 @@ export default async function CollectionPage() {
 
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', user.id)
-    .single();
+  // Chargement simultané du profil, des cartes et de la collection.
+  const [profileResult, cardsResult, ownedResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single(),
 
-  if (!profile?.username) redirect('/choisir-pseudo');
-
-  // Toutes les cartes du jeu
-  const { data: allCards, error: cardsError } = await supabase
-    .from('cards')
-    .select(`
-      id,
-      name,
-      description,
-      image_url,
-      rarity,
-      card_number,
-      buyback_price,
-      extension_id,
-      is_active,
-      genre,
-      extensions (
+    supabase
+      .from('cards')
+      .select(`
         id,
-        name
-      )
-    `)
-    .order('card_number', { ascending: true });
+        name,
+        description,
+        image_url,
+        rarity,
+        card_number,
+        buyback_price,
+        extension_id,
+        is_active,
+        genre,
+        extensions (
+          id,
+          name
+        )
+      `)
+      .order('card_number', { ascending: true }),
 
-  // Cartes possédées par le joueur
-  const { data: ownedRows, error: ownedError } = await supabase
-    .from('player_cards')
-    .select('card_id, quantity')
-    .eq('user_id', user.id)
-    .gt('quantity', 0);
+    supabase
+      .from('player_cards')
+      .select('card_id, quantity')
+      .eq('user_id', user.id)
+      .gt('quantity', 0),
+  ]);
+
+  if (!profileResult.data?.username) {
+    redirect('/choisir-pseudo');
+  }
+
+  const { data: allCards, error: cardsError } = cardsResult;
+  const { data: ownedRows, error: ownedError } = ownedResult;
 
   if (cardsError) {
     console.error('Erreur chargement des cartes :', cardsError);
@@ -56,7 +62,7 @@ export default async function CollectionPage() {
     console.error('Erreur chargement de la collection :', ownedError);
   }
 
-  // Quantités possédées
+  // Création rapide d'un index des cartes possédées.
   const ownedQuantities = new Map(
     (ownedRows ?? []).map((item) => [
       item.card_id,
@@ -64,12 +70,11 @@ export default async function CollectionPage() {
     ])
   );
 
-  // Construction de la collection complète
+  // Construction de la collection complète.
   const cards = (allCards ?? [])
     .filter((card) => {
       const quantity = ownedQuantities.get(card.id) ?? 0;
 
-      // Les cartes désactivées restent visibles si le joueur les possède.
       return card.is_active || quantity > 0;
     })
     .map((card) => {
