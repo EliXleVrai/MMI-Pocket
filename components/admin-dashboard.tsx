@@ -207,8 +207,7 @@ export async function AdminDashboard() {
 
         {economyResult.error ? (
           <p className="admin-economy-error">
-            Impossible de charger les statistiques économiques.
-            Vérifie la fonction admin_economy_stats dans Supabase.
+            Erreur Supabase : {economyResult.error.message}
           </p>
         ) : (
           <div className="admin-stats-grid">
