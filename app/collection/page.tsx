@@ -46,7 +46,7 @@ export default async function CollectionPage() {
 
   const cards = (ownedCards ?? [])
     .filter((item) => item.cards)
-    .map((item: any) => {
+    .map((item) => {
       const card = Array.isArray(item.cards)
         ? item.cards[0]
         : item.cards;
