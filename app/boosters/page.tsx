@@ -249,12 +249,13 @@ export default function BoostersPage() {
                         </span>
 
                         <button
-                          className="booster-open-button"
-                          onClick={() => void openBooster(booster)}
-                          disabled={
-                            openingId !== null ||
-                            energy < booster.energy_cost
-                          }
+                          onClick={() => {
+                            if (!isCardRevealed) {
+                              setIsCardRevealed(true);
+                            } else {
+                              nextCard();
+                            }
+                          }}
                         >
                           {openingId === booster.id
                             ? 'Ouverture...'
@@ -308,12 +309,24 @@ export default function BoostersPage() {
               tabIndex={0}
               aria-label="Révéler la carte"
               onKeyDown={(event) => {
-                if (!isCardRevealed && (event.key === 'Enter' || event.key === ' ')) {
+                if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-                  setIsCardRevealed(true);
+              
+                  if (!isCardRevealed) {
+                    setIsCardRevealed(true);
+                  } else {
+                    nextCard();
+                  }
                 }
               }}
             >
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setShowSummary(true)}
+              >
+                Passer au récapitulatif
+              </button>
               <div className="booster-card-inner">
                 <div className="booster-card-face booster-card-back">
                   <div className="booster-card-back-pattern">
