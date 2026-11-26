@@ -387,7 +387,7 @@ export function CardManager() {
 
           {previewUrl && (
             <div className="card-image-preview">
-              <p>Aperçu de l'image</p>
+              <p>Aperçu de l&apos;image</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={previewUrl} alt="Aperçu de la carte" />
             </div>
