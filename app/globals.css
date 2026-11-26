@@ -2636,3 +2636,96 @@ a:focus-visible {
   font-weight: 600;
   font-size: 0.9rem;
 }
+
+.collection-sale-panel {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 15px;
+  background: #f4f8f3;
+  border: 1px solid #dce9dc;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.collection-sale-panel h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.collection-sale-price,
+.collection-sale-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.collection-sale-price strong,
+.collection-sale-total strong {
+  color: #16834a;
+  font-weight: 800;
+}
+
+.collection-sale-quantity {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.collection-sale-quantity input {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #d5dfd5;
+  border-radius: 9px;
+  background: white;
+}
+
+.collection-sale-total {
+  padding-top: 12px;
+  border-top: 1px solid #dce5dc;
+}
+
+.collection-sale-total strong {
+  font-size: 1.25rem;
+}
+
+.collection-sell-button {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: #16834a;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.collection-sell-button:hover {
+  background: #116b3b;
+}
+
+.collection-sell-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.collection-no-buyback {
+  color: #a16207;
+  font-size: 0.9rem;
+}
+
+.collection-sale-panel small {
+  color: #647568;
+  line-height: 1.5;
+}
+
+.collection-sale-success {
+  padding: 13px 16px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background: #e8f7ed;
+  color: #16703d;
+  font-weight: 600;
+}
