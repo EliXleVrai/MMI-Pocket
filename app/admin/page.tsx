@@ -1,9 +1,11 @@
+
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CardCreator } from '@/components/card-creator';
 import { CardManager } from '@/components/card-manager';
 import { ExtensionManager } from '@/components/extension-manager';
 import { BoosterManager } from '@/components/booster-manager';
+import { PlayerManager } from '@/components/player-manager';
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -29,13 +31,17 @@ export default async function AdminPage() {
       <h1>Administration</h1>
 
       <p className="page-description">
-        Gère les extensions, les boosters, les cartes et le contenu de MMI Pocket.
+        Gère les joueurs, les extensions, les boosters et les cartes de MMI Pocket.
       </p>
 
       <section className="profile-card">
         <h2>Bienvenue, @{profile.username}</h2>
         <p>Tu es connecté en tant qu&apos;administrateur.</p>
       </section>
+
+      <PlayerManager />
+
+      <div className="admin-dashboard-divider" />
 
       <ExtensionManager />
 
