@@ -503,11 +503,17 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                 </span>
               </div>
       
-              <h2>{selectedCard.name}</h2>
+              <h2>
+                {selectedCard.quantity > 0
+                  ? selectedCard.name
+                  : 'Carte inconnue'}
+              </h2>
       
-              <p className="collection-modal-description">
-                {selectedCard.description || 'Aucune description disponible.'}
-              </p>
+             <p className="collection-modal-description">
+              {selectedCard.quantity > 0
+                ? selectedCard.description || 'Aucune description disponible.'
+                : 'Découvre cette carte pour révéler ses informations.'}
+            </p>
       
               <div className="collection-modal-details">
                 <span>
