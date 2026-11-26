@@ -476,15 +476,20 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                         ? selectedCard.name
                         : 'Carte inconnue'
                     }
-                    style={
+                    className={
                       selectedCard.quantity === 0
-                        ? {
-                            filter: 'brightness(0)',
-                            opacity: 0.35,
-                          }
-                        : undefined
+                        ? 'collection-modal-image-missing'
+                        : ''
                     }
                   />
+                ) : (
+                  <div className="collection-card-placeholder">🃏</div>
+                )}
+              
+                {selectedCard.quantity === 0 && (
+                  <span className="collection-missing-label">?</span>
+                )}
+              </div>
                 ) : (
                   <div className="collection-card-placeholder">🃏</div>
                 )}
