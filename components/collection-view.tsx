@@ -461,29 +461,30 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
       
             <div className="collection-modal-art">
               <div className="collection-modal-art-label">
-                {selectedCard.quantity > 0 ? 'CARTE DÉCOUVERTE' : 'CARTE À DÉCOUVRIR'}
+                {selectedCard.quantity > 0
+                  ? 'CARTE DÉCOUVERTE'
+                  : 'CARTE INCONNUE'}
               </div>
-      
+            
               <div className="collection-modal-image">
-                {selectedCard.image_url ? (
+                {selectedCard.quantity > 0 && selectedCard.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selectedCard.image_url}
-                    alt={selectedCard.name}
-                  />
+                  <img src={selectedCard.image_url} alt={selectedCard.name} />
                 ) : (
-                  <div className="collection-card-placeholder">🃏</div>
+                  <div className="collection-card-placeholder">
+                    🃏
+                  </div>
                 )}
               </div>
-      
-              <div className="collection-modal-art-footer">
-                <span>
-                  {selectedCard.extension?.name ?? 'Extension inconnue'}
-                </span>
-                {selectedCard.card_number !== null && (
-                  <strong>#{selectedCard.card_number}</strong>
-                )}
-              </div>
+            
+              {selectedCard.quantity > 0 && (
+                <div className="collection-modal-art-footer">
+                  <span>{selectedCard.extension?.name ?? 'Extension inconnue'}</span>
+                  {selectedCard.card_number !== null && (
+                    <strong>#{selectedCard.card_number}</strong>
+                  )}
+                </div>
+              )}
             </div>
       
             <div className="collection-modal-info">
