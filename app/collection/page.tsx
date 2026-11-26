@@ -1,5 +1,7 @@
+
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { CollectionView } from '@/components/collection-view';
 
 export default async function CollectionPage() {
   const supabase = await createClient();
@@ -18,18 +20,74 @@ export default async function CollectionPage() {
 
   if (!profile?.username) redirect('/choisir-pseudo');
 
+  const { data: ownedCards, error } = await supabase
+    .from('player_cards')
+    .select(`
+      quantity,
+      cards (
+        id,
+        name,
+        description,
+        image_url,
+        rarity,
+        card_number,
+        extensions (
+          id,
+          name
+        )
+      )
+    `)
+    .eq('user_id', user.id)
+    .order('acquired_at', { ascending: false });
+
+  if (error) {
+    console.error('Erreur chargement collection :', error);
+  }
+
+  const cards = (ownedCards ?? [])
+    .filter((item) => item.cards)
+    .map((item: any) => {
+      const card = Array.isArray(item.cards)
+        ? item.cards[0]
+        : item.cards;
+
+      const extension = Array.isArray(card?.extensions)
+        ? card.extensions[0]
+        : card?.extensions;
+
+      return {
+        id: card.id,
+        name: card.name,
+        description: card.description,
+        image_url: card.image_url,
+        rarity: card.rarity,
+        card_number: card.card_number,
+        quantity: item.quantity,
+        extension: extension
+          ? {
+              id: extension.id,
+              name: extension.name,
+            }
+          : null,
+      };
+    });
+
   return (
     <main className="page-container">
       <h1>Ma collection</h1>
+
       <p className="page-description">
-        Retrouve ici toutes les cartes que tu as obtenues.
+        Retrouve toutes tes cartes, découvre leurs raretés
+        et complète tes extensions.
       </p>
 
-      <section className="profile-card">
-        <h2>Mes cartes</h2>
-        <p>Ta collection est actuellement vide.</p>
-        <p>Ouvre tes premiers boosters pour obtenir des cartes !</p>
-      </section>
+      <CollectionView cards={cards} />
+
+      {error && (
+        <p className="error-message">
+          Impossible de charger ta collection.
+        </p>
+      )}
     </main>
   );
 }
