@@ -2612,3 +2612,12 @@ a:focus-visible {
     gap: 10px;
   }
 }
+
+.admin-card-buyback {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #16834a;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
