@@ -2527,3 +2527,37 @@ a:focus-visible {
     animation: none;
   }
 }
+
+
+.lucky-summary-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 0 auto 28px;
+  padding: 22px;
+  max-width: 700px;
+  border: 2px solid #e5b94e;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #fff6d8, #ffe6a0, #fff8df);
+  box-shadow: 0 8px 28px rgba(218, 164, 47, 0.2);
+  text-align: center;
+}
+
+.lucky-summary-banner > span {
+  font-size: 32px;
+}
+
+.lucky-summary-banner h2 {
+  margin: 0 0 6px;
+  color: #94600b;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.lucky-summary-banner p {
+  margin: 0;
+  color: #795b26;
+  font-size: 14px;
+  font-weight: 600;
+}
