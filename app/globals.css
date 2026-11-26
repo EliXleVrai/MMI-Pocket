@@ -2415,3 +2415,115 @@ a:focus-visible {
 .booster-card-face img {
   pointer-events: none;
 }
+
+
+/* ========================================
+   BOOSTER CHANCEUX
+======================================== */
+
+.lucky-booster-banner {
+  position: relative;
+  overflow: hidden;
+  width: min(100%, 560px);
+  margin: 0 auto 32px;
+  padding: 28px 20px;
+  text-align: center;
+  border: 2px solid #e9bd54;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 0%, #fff2b8 0%, transparent 65%),
+    linear-gradient(135deg, #fff8df, #f6d77f, #fff0bd);
+  box-shadow:
+    0 0 25px rgba(235, 183, 65, 0.35),
+    inset 0 0 25px rgba(255, 255, 255, 0.7);
+  animation: lucky-banner-appear 0.8s ease both;
+}
+
+.lucky-booster-banner h2 {
+  margin: 8px 0;
+  color: #8b5a08;
+  font-size: clamp(24px, 5vw, 34px);
+  font-weight: 950;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 0 #fff3c4;
+}
+
+.lucky-booster-banner p {
+  margin: 0;
+  color: #79551b;
+  font-weight: 650;
+}
+
+.lucky-booster-icon {
+  font-size: 54px;
+  filter: drop-shadow(0 0 12px #e7a928);
+  animation: lucky-star-pulse 1.8s ease-in-out infinite;
+}
+
+.lucky-booster-stars {
+  color: #c58a19;
+  font-size: 25px;
+  letter-spacing: 14px;
+  animation: lucky-stars-glow 2s ease-in-out infinite;
+}
+
+.lucky-booster-card {
+  filter: drop-shadow(0 0 18px rgba(255, 193, 55, 0.7));
+}
+
+.lucky-booster-card .booster-card-inner {
+  box-shadow:
+    0 0 0 3px #e7b849,
+    0 0 30px rgba(255, 196, 55, 0.55);
+}
+
+.lucky-booster-card.is-revealed {
+  animation: lucky-card-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes lucky-banner-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lucky-star-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(5deg);
+  }
+}
+
+@keyframes lucky-stars-glow {
+  0%, 100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes lucky-card-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 12px rgba(255, 193, 55, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(255, 193, 55, 0.9));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lucky-booster-banner,
+  .lucky-booster-icon,
+  .lucky-booster-stars,
+  .lucky-booster-card.is-revealed {
+    animation: none;
+  }
+}
