@@ -1,7 +1,6 @@
 
 import {
   ArrowRight,
-  Bolt,
   BookOpen,
   Coins,
   Gift,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { HomeEnergyDisplay } from '@/components/home-energy-display';
 
 const rarityLabels: Record<string, string> = {
   common: 'Commune',
@@ -94,7 +94,7 @@ export default async function Home() {
 
       supabase
         .from('player_wallets')
-        .select('*')
+        .select('energy, max_energy, coins')
         .eq('user_id', user.id)
         .maybeSingle(),
 
@@ -129,6 +129,7 @@ export default async function Home() {
     const owned = ownedResult.data ?? [];
 
     ownedUnique = owned.length;
+
     totalCopies = owned.reduce(
       (sum, card) => sum + (card.quantity ?? 0),
       0
@@ -176,7 +177,7 @@ export default async function Home() {
     const openings = openingsResult.data ?? [];
     const marketSales = marketSalesResult.data ?? [];
 
-    // Récupération des boosters et des cartes obtenues en parallèle
+    // Récupération des boosters et des cartes obtenues
 
     const openingIds = openings.map((opening) => opening.id);
 
@@ -255,7 +256,7 @@ export default async function Home() {
       seller_earnings: sale.seller_earnings,
     }));
 
-    // FUSION DES ACTIVITÉS ET TRI CHRONOLOGIQUE
+    // Fusion des activités et tri chronologique
 
     recentActivity = [
       ...recentOpenings.map((opening) => ({
@@ -388,27 +389,26 @@ export default async function Home() {
       </section>
 
       <section className="home-resource-grid">
-        <article className="home-resource-card energy">
-          <div className="home-resource-icon">
-            <Bolt size={21} />
-          </div>
-          <div>
-            <span>ÉNERGIE</span>
-            <strong>{user ? `${energy} / ${maxEnergy}` : '—'}</strong>
-            <small>Pour ouvrir tes boosters</small>
-          </div>
-          <div className="home-resource-progress">
-            <span
-              style={{
-                width: `${
-                  maxEnergy > 0
-                    ? Math.min(100, (energy / maxEnergy) * 100)
-                    : 0
-                }%`,
-              }}
-            />
-          </div>
-        </article>
+        {user ? (
+          <HomeEnergyDisplay
+            initialEnergy={energy}
+            initialMaxEnergy={maxEnergy}
+          />
+        ) : (
+          <article className="home-resource-card energy">
+            <div className="home-resource-icon">
+              <span>⚡</span>
+            </div>
+            <div>
+              <span>ÉNERGIE</span>
+              <strong>—</strong>
+              <small>Connecte-toi pour commencer</small>
+            </div>
+            <div className="home-resource-progress">
+              <span style={{ width: '0%' }} />
+            </div>
+          </article>
+        )}
 
         <article className="home-resource-card money">
           <div className="home-resource-icon">
@@ -432,7 +432,9 @@ export default async function Home() {
           </div>
           <div>
             <span>CARTES UNIQUES</span>
-            <strong>{user ? `${ownedUnique} / ${totalCards}` : '—'}</strong>
+            <strong>
+              {user ? `${ownedUnique} / ${totalCards}` : '—'}
+            </strong>
             <small>
               {user
                 ? `${totalCopies} exemplaires au total`
@@ -600,8 +602,6 @@ export default async function Home() {
           </div>
         )}
       </section>
-
-      {/* ACTIVITÉ RÉCENTE */}
 
       <section className="home-activity-section">
         <div className="home-section-heading">
