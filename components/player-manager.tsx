@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -11,30 +12,73 @@ type Player = {
   created_at: string;
 };
 
+type AuthProvider = {
+  user_id: string;
+  provider: string;
+  email: string | null;
+};
+
+type PlayerProviders = {
+  google?: string | null;
+  discord?: string | null;
+};
+
 export function PlayerManager() {
   const supabase = createClient();
 
   const [players, setPlayers] = useState<Player[]>([]);
+  const [providers, setProviders] = useState<Record<string, PlayerProviders>>({});
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [providerError, setProviderError] = useState('');
 
   async function loadPlayers() {
     setLoading(true);
     setError('');
+    setProviderError('');
 
-    const { data, error: fetchError } = await supabase
-      .from('profiles')
-      .select('id, username, display_name, role, created_at')
-      .order('created_at', { ascending: false });
+    const [playersResult, providersResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, username, display_name, role, created_at')
+        .order('created_at', { ascending: false }),
 
-    if (fetchError) {
-      setError(fetchError.message);
+      supabase.rpc('admin_list_player_auth_providers'),
+    ]);
+
+    if (playersResult.error) {
+      setError(playersResult.error.message);
       setLoading(false);
       return;
     }
 
-    setPlayers((data ?? []) as Player[]);
+    if (providersResult.error) {
+      setProviderError(providersResult.error.message);
+    }
+
+    const providerMap: Record<string, PlayerProviders> = {};
+
+    if (!providersResult.error) {
+      const authProviders = (providersResult.data ?? []) as AuthProvider[];
+
+      authProviders.forEach((item) => {
+        if (!providerMap[item.user_id]) {
+          providerMap[item.user_id] = {};
+        }
+
+        if (item.provider === 'google') {
+          providerMap[item.user_id].google = item.email;
+        }
+
+        if (item.provider === 'discord') {
+          providerMap[item.user_id].discord = item.email;
+        }
+      });
+    }
+
+    setPlayers((playersResult.data ?? []) as Player[]);
+    setProviders(providerMap);
     setLoading(false);
   }
 
@@ -63,6 +107,38 @@ export function PlayerManager() {
     });
   }
 
+  function ProviderStatus({
+    provider,
+    email,
+  }: {
+    provider: 'google' | 'discord';
+    email?: string | null;
+  }) {
+    const connected = email !== undefined;
+
+    return (
+      <div
+        className={`admin-provider-status ${
+          connected ? 'is-connected' : 'is-disconnected'
+        }`}
+      >
+        <span className="admin-provider-dot" />
+
+        <div>
+          <strong>
+            {provider === 'google' ? 'Google' : 'Discord'}
+          </strong>
+
+          <span>
+            {connected
+              ? email || 'Compte connecté'
+              : 'Non connecté'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="admin-manager">
       <div className="admin-section-heading">
@@ -84,6 +160,13 @@ export function PlayerManager() {
 
       {error && <p className="form-error">{error}</p>}
 
+      {providerError && (
+        <p className="form-error">
+          Impossible de récupérer les comptes Google et Discord :
+          {' '}{providerError}
+        </p>
+      )}
+
       {loading && <p>Chargement des joueurs...</p>}
 
       {!loading && filteredPlayers.length === 0 && (
@@ -91,37 +174,53 @@ export function PlayerManager() {
       )}
 
       <div className="admin-player-list">
-        {filteredPlayers.map((player) => (
-          <article className="admin-player-item" key={player.id}>
-            <div className="admin-player-avatar">
-              {(player.username ?? '?').charAt(0).toUpperCase()}
-            </div>
+        {filteredPlayers.map((player) => {
+          const playerProviders = providers[player.id] ?? {};
 
-            <div className="admin-player-info">
-              <strong>
-                {player.display_name || player.username || 'Sans pseudo'}
-              </strong>
+          return (
+            <article className="admin-player-item" key={player.id}>
+              <div className="admin-player-avatar">
+                {(player.username ?? '?').charAt(0).toUpperCase()}
+              </div>
 
-              <span>
-                @{player.username || 'non défini'}
+              <div className="admin-player-info">
+                <strong>
+                  {player.display_name || player.username || 'Sans pseudo'}
+                </strong>
+
+                <span>
+                  @{player.username || 'non défini'}
+                </span>
+
+                <span>
+                  Inscrit le {formatDate(player.created_at)}
+                </span>
+
+                <div className="admin-player-providers">
+                  <ProviderStatus
+                    provider="google"
+                    email={playerProviders.google}
+                  />
+
+                  <ProviderStatus
+                    provider="discord"
+                    email={playerProviders.discord}
+                  />
+                </div>
+              </div>
+
+              <span
+                className={
+                  player.role === 'admin'
+                    ? 'admin-player-role is-admin'
+                    : 'admin-player-role'
+                }
+              >
+                {player.role === 'admin' ? 'Administrateur' : 'Joueur'}
               </span>
-
-              <span>
-                Inscrit le {formatDate(player.created_at)}
-              </span>
-            </div>
-
-            <span
-              className={
-                player.role === 'admin'
-                  ? 'admin-player-role is-admin'
-                  : 'admin-player-role'
-              }
-            >
-              {player.role === 'admin' ? 'Administrateur' : 'Joueur'}
-            </span>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </section>
   );
