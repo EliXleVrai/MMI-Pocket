@@ -3426,6 +3426,416 @@ h1 span {
 }
 
 
+/* =========================================
+   INSPECTION DE CARTE - DESIGN PREMIUM
+========================================= */
+
+.collection-modal-overlay {
+  padding: 24px;
+  background: rgba(17, 25, 18, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: premium-overlay-in .25s ease both;
+}
+
+.collection-modal-premium {
+  --modal-accent: #a8d85d;
+  position: relative;
+  grid-template-columns: minmax(230px, .85fr) minmax(0, 1.15fr);
+  align-items: stretch;
+  gap: 30px;
+  width: min(100%, 850px);
+  max-height: min(850px, calc(100vh - 48px));
+  padding: 30px;
+  overflow-y: auto;
+  border: 1px solid rgba(220, 232, 207, .9);
+  border-radius: 25px;
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(211, 239, 176, .24), transparent 42%),
+    linear-gradient(145deg, #ffffff, #f8faf4);
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, .35),
+    0 0 35px rgba(196, 232, 150, .10);
+  animation: premium-modal-in .35s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+.collection-modal-premium.rarity-rare {
+  --modal-accent: #62a9ff;
+}
+
+.collection-modal-premium.rarity-epic {
+  --modal-accent: #bd83ff;
+}
+
+.collection-modal-premium.rarity-legendary {
+  --modal-accent: #e5b83e;
+}
+
+.collection-modal-premium .collection-modal-close {
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-color: #e7ebdf;
+  background: rgba(255, 255, 255, .9);
+  color: #58634f;
+  font-size: 25px;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.collection-modal-premium .collection-modal-close:hover {
+  transform: rotate(90deg);
+  background: #edf5e4;
+}
+
+/* Illustration */
+
+.collection-modal-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  min-width: 0;
+  padding: 22px 15px;
+  border: 1px solid rgba(220, 230, 211, .8);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at center, rgba(255,255,255,.95), transparent 70%),
+    linear-gradient(145deg, #edf4e5, #e2ecd8);
+}
+
+.collection-modal-art-label {
+  align-self: flex-start;
+  padding: 7px 11px;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 7px;
+  background: rgba(255,255,255,.65);
+  color: #758568;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+}
+
+.collection-modal-premium .collection-modal-image {
+  position: relative;
+  top: auto;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 5 / 7;
+  overflow: visible;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  box-shadow:
+    0 15px 30px rgba(40, 55, 30, .13),
+    0 0 0 1px rgba(255,255,255,.8);
+}
+
+.collection-modal-premium .collection-modal-image::before {
+  position: absolute;
+  z-index: 0;
+  inset: -12px;
+  border-radius: 22px;
+  background: var(--modal-accent);
+  opacity: .13;
+  filter: blur(22px);
+  content: "";
+}
+
+.collection-modal-premium .collection-modal-image img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 480px;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.collection-modal-premium .collection-modal-image .collection-card-placeholder {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: 5 / 7;
+  border-radius: 14px;
+  background: #e4ecd9;
+  font-size: 50px;
+}
+
+.collection-modal-art-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  color: #77836d;
+  font-size: 10px;
+}
+
+.collection-modal-art-footer strong {
+  color: #536b3f;
+  font-size: 12px;
+}
+
+/* Informations */
+
+.collection-modal-premium .collection-modal-info {
+  justify-content: flex-start;
+  gap: 17px;
+  padding: 12px 0 0;
+}
+
+.collection-modal-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-right: 40px;
+}
+
+.collection-modal-kicker {
+  color: #9aa48f;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+}
+
+.collection-modal-owned {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.collection-modal-owned.is-owned {
+  background: #edf7df;
+  color: #628b32;
+}
+
+.collection-modal-owned.is-missing {
+  background: #f0f0ed;
+  color: #85877e;
+}
+
+.collection-modal-premium .collection-card-badges {
+  justify-content: flex-start;
+}
+
+.collection-modal-premium .collection-modal-info h2 {
+  margin: 0;
+  color: #34452b;
+  font-size: clamp(23px, 3vw, 31px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -.9px;
+}
+
+.collection-modal-description {
+  margin: -5px 0 0;
+  color: #7e8975;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* Fiche technique */
+
+.collection-modal-premium .collection-modal-details {
+  gap: 0;
+  padding: 5px 15px;
+  border: 1px solid #e8eddf;
+  border-radius: 13px;
+  background: rgba(255,255,255,.7);
+}
+
+.collection-modal-premium .collection-modal-details span {
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid #edf0e9;
+  font-size: 11px;
+}
+
+.collection-modal-premium .collection-modal-details span:last-child {
+  border-bottom: 0;
+}
+
+.collection-modal-premium .collection-modal-details strong {
+  color: #526744;
+  font-size: 11px;
+}
+
+/* Vente */
+
+.collection-modal-premium .collection-sale-panel {
+  gap: 13px;
+  padding: 17px;
+  border: 1px solid #e1ebd4;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f8fbf3, #eff6e7);
+}
+
+.collection-sale-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.collection-sale-heading h3 {
+  margin: 5px 0 0;
+  color: #425735;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.collection-sale-icon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 11px;
+  background: #e4f1d4;
+  color: #729a43;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.collection-modal-premium .collection-sale-price strong {
+  color: #638b39;
+}
+
+.collection-modal-premium .collection-sale-total {
+  padding-top: 13px;
+  border-top: 1px solid #dfe9d4;
+}
+
+.collection-modal-premium .collection-sale-total strong {
+  color: #557d2f;
+  font-size: 21px;
+}
+
+.collection-modal-premium .collection-sale-quantity input {
+  min-height: 43px;
+  border-color: #dce7d1;
+  border-radius: 10px;
+}
+
+.collection-modal-premium .collection-sell-button {
+  min-height: 45px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #536f37, #3d5929);
+  box-shadow: 0 5px 13px rgba(65, 95, 43, .16);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.collection-modal-premium .collection-sell-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(65, 95, 43, .24);
+}
+
+.collection-modal-premium .collection-sell-button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.collection-modal-premium .collection-sale-panel small {
+  font-size: 9px;
+}
+
+.collection-modal-premium .collection-missing-details {
+  border-color: #e4eadb;
+  border-radius: 15px;
+  background: #f5f8f0;
+}
+
+.collection-modal-premium .collection-missing-details strong {
+  font-size: 13px;
+}
+
+.collection-modal-premium .collection-missing-details p {
+  font-size: 11px;
+}
+
+/* Animations */
+
+@keyframes premium-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes premium-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 650px) {
+  .collection-modal-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .collection-modal-premium {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 17px;
+    border-radius: 20px;
+  }
+
+  .collection-modal-art {
+    padding: 15px;
+  }
+
+  .collection-modal-premium .collection-modal-image {
+    width: min(75%, 270px);
+  }
+
+  .collection-modal-premium .collection-modal-image img {
+    max-height: 350px;
+  }
+
+  .collection-modal-premium .collection-modal-info {
+    gap: 14px;
+    padding-top: 0;
+  }
+
+  .collection-modal-topline {
+    padding-right: 35px;
+  }
+
+  .collection-modal-premium .collection-modal-info h2 {
+    font-size: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-modal-overlay,
+  .collection-modal-premium {
+    animation: none;
+  }
+}
+
+
+
 /* ==========================================================================
    12. MARCHÉ
    ========================================================================== */
