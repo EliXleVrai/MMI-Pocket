@@ -1917,3 +1917,38 @@ a:focus-visible {
     transition: none;
   }
 }
+
+
+.admin-extension-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-delete-button {
+  padding: 9px 13px;
+  color: #a33d2c;
+  background: #fff0ec;
+  border: 1px solid #f0d1c9;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-delete-button:hover:not(:disabled) {
+  background: #fce0d9;
+}
+
+.admin-delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+  .admin-extension-actions {
+    width: 100%;
+  }
+}
