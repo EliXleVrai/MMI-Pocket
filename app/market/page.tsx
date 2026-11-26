@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { MarketView } from '@/components/market-view';
+import { MarketFavoriteButton } from '@/components/market-favorite-button';
 
 export default async function MarketPage() {
   const supabase = await createClient();
@@ -39,6 +40,13 @@ export default async function MarketPage() {
       )
     `)
     .order('created_at', { ascending: false });
+
+  const { data: favorite } = await supabase
+  .from('market_favorites')
+  .select('card_id')
+  .eq('user_id', user.id)
+  .eq('card_id', id)
+  .maybeSingle();
 
   if (listingsError) {
     console.error('Erreur chargement du marché :', listingsError);
