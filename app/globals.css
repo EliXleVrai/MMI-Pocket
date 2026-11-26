@@ -6563,3 +6563,42 @@ h1 span {
     padding: 9px 6px;
   }
 }
+
+/* =========================================
+   HALO DORÉ — EXTENSIONS TERMINÉES
+========================================= */
+
+.extension-card-completed {
+  position: relative;
+  border-color: #e5c66b;
+  animation: extension-golden-aura 3s ease-in-out infinite;
+}
+
+.extension-card-completed:hover {
+  border-color: #d6ad3e;
+  animation-play-state: paused;
+  box-shadow:
+    0 0 18px rgba(224, 181, 63, 0.35),
+    0 0 38px rgba(224, 181, 63, 0.18),
+    0 12px 30px rgba(35, 55, 35, 0.09);
+}
+
+@keyframes extension-golden-aura {
+  0%, 100% {
+    box-shadow:
+      0 0 7px rgba(224, 181, 63, 0.18),
+      0 0 17px rgba(224, 181, 63, 0.10);
+  }
+
+  50% {
+    box-shadow:
+      0 0 15px rgba(224, 181, 63, 0.42),
+      0 0 32px rgba(224, 181, 63, 0.22),
+      0 0 48px rgba(224, 181, 63, 0.10);
+  }
+}
+
+.extension-card-completed .extension-complete {
+  background: linear-gradient(135deg, #fff0b5, #e5c15b);
+  box-shadow: 0 0 12px rgba(224, 181, 63, 0.35);
+}
