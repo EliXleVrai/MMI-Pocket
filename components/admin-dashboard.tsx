@@ -14,6 +14,13 @@ type RecentPlayer = {
   created_at: string;
 };
 
+type EconomyStats = {
+  boosters_opened: number;
+  energy_spent: number;
+  coins_in_circulation: number;
+  cards_owned: number;
+};
+
 export async function AdminDashboard() {
   const supabase = await createClient();
 
@@ -26,6 +33,7 @@ export async function AdminDashboard() {
     extensionsResult,
     recentCardsResult,
     recentPlayersResult,
+    economyResult,
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'admin'),
@@ -41,6 +49,7 @@ export async function AdminDashboard() {
       .select('id, username, created_at')
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase.rpc('admin_economy_stats'),
   ]);
 
   const stats = [
@@ -73,6 +82,35 @@ export async function AdminDashboard() {
   const recentCards = (recentCardsResult.data ?? []) as RecentCard[];
   const recentPlayers = (recentPlayersResult.data ?? []) as RecentPlayer[];
 
+  const economy = economyResult.data?.[0] as EconomyStats | undefined;
+
+  const economyStats = [
+    {
+      label: 'Boosters ouverts',
+      value: Number(economy?.boosters_opened ?? 0),
+      icon: '🎁',
+      detail: 'Depuis le lancement',
+    },
+    {
+      label: 'Énergie dépensée',
+      value: Number(economy?.energy_spent ?? 0),
+      icon: '⚡',
+      detail: 'Énergie totale consommée',
+    },
+    {
+      label: 'Pièces en circulation',
+      value: Number(economy?.coins_in_circulation ?? 0),
+      icon: '🪙',
+      detail: 'Somme des portefeuilles',
+    },
+    {
+      label: 'Cartes possédées',
+      value: Number(economy?.cards_owned ?? 0),
+      icon: '✨',
+      detail: 'Exemplaires dans les collections',
+    },
+  ];
+
   const rarityLabels: Record<string, string> = {
     common: 'Commune',
     uncommon: 'Peu commune',
@@ -80,6 +118,10 @@ export async function AdminDashboard() {
     epic: 'Épique',
     legendary: 'Légendaire',
   };
+
+  function formatNumber(value: number) {
+    return value.toLocaleString('fr-FR');
+  }
 
   function formatDate(date: string) {
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -108,7 +150,7 @@ export async function AdminDashboard() {
               <span>{stat.label}</span>
               <span className="admin-stat-icon">{stat.icon}</span>
             </div>
-            <strong>{stat.value.toLocaleString('fr-FR')}</strong>
+            <strong>{formatNumber(stat.value)}</strong>
             <p>{stat.detail}</p>
           </article>
         ))}
@@ -150,6 +192,38 @@ export async function AdminDashboard() {
             ))
           )}
         </section>
+      </div>
+
+      <div className="admin-economy-section">
+        <div className="admin-dashboard-heading">
+          <div>
+            <h2>Économie du jeu</h2>
+            <p>Suivi global de l&apos;activité économique de MMI Pocket.</p>
+          </div>
+          <span className="admin-live-indicator">
+            ● Données en direct
+          </span>
+        </div>
+
+        {economyResult.error ? (
+          <p className="admin-economy-error">
+            Impossible de charger les statistiques économiques.
+            Vérifie la fonction admin_economy_stats dans Supabase.
+          </p>
+        ) : (
+          <div className="admin-stats-grid">
+            {economyStats.map((stat) => (
+              <article className="admin-stat-card admin-economy-card" key={stat.label}>
+                <div className="admin-stat-top">
+                  <span>{stat.label}</span>
+                  <span className="admin-stat-icon">{stat.icon}</span>
+                </div>
+                <strong>{formatNumber(stat.value)}</strong>
+                <p>{stat.detail}</p>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
