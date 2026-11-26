@@ -12,21 +12,26 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  const [
+    { data: profile },
+    { data: wallet },
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single(),
+
+    supabase
+      .from('player_wallets')
+      .select('coins, energy, max_energy')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+  ]);
 
   if (!profile?.username) {
     redirect('/choisir-pseudo');
   }
-
-  const { data: wallet } = await supabase
-    .from('player_wallets')
-    .select('coins, energy, max_energy')
-    .eq('user_id', user.id)
-    .maybeSingle();
 
   return (
     <main className="page-container">
