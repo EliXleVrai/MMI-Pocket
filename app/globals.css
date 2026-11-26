@@ -2396,3 +2396,22 @@ a:focus-visible {
     animation: none !important;
   }
 }
+
+/* Interaction directe avec la carte */
+
+.booster-flip-card {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.booster-flip-card:focus-visible {
+  outline: 3px solid #91b85b;
+  outline-offset: 6px;
+  border-radius: 20px;
+}
+
+/* Empêche les images de perturber les clics */
+.booster-card-face,
+.booster-card-face img {
+  pointer-events: none;
+}
