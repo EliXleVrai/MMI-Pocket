@@ -15,6 +15,8 @@ type Rarity =
   | 'epic'
   | 'legendary';
 
+type Genre = 'Terrain' | 'Personnage' | 'Objet';
+
 export function CardCreator() {
   const [extensions, setExtensions] = useState<Extension[]>([]);
   const [name, setName] = useState('');
@@ -27,6 +29,7 @@ export function CardCreator() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [genre, setGenre] = useState<Genre>('Personnage');
 
   useEffect(() => {
     async function loadExtensions() {
@@ -173,6 +176,7 @@ export function CardCreator() {
         description: description.trim() || null,
         image_url: finalImageUrl,
         rarity,
+        genre,
         card_number: nextNumber,
         is_active: true,
       });
@@ -187,6 +191,7 @@ export function CardCreator() {
     setName('');
     setDescription('');
     setRarity('common');
+    setGenre('Personnage');
     setImageUrl('');
     setImageFile(null);
 
@@ -227,6 +232,16 @@ export function CardCreator() {
           placeholder="Raconte l’histoire de cette carte..."
           rows={4}
         />
+        <label htmlFor="card-genre">Genre de la carte</label>
+          <select
+            id="card-genre"
+            value={genre}
+            onChange={(event) => setGenre(event.target.value as Genre)}
+          >
+            <option value="Terrain">Terrain</option>
+            <option value="Personnage">Personnage</option>
+            <option value="Objet">Objet</option>
+          </select>
 
         <label htmlFor="card-extension">Extension</label>
         <select
