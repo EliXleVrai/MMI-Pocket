@@ -366,7 +366,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
 
                 <div className="collection-sale-quantity">
                   <label htmlFor="sell-quantity">
-                    Nombre d'exemplaires à vendre
+                    Nombre d&apos;exemplaires à vendre
                   </label>
 
                   <input
@@ -417,7 +417,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                 )}
 
                 <small>
-                  Le prix est fixé par l'administrateur et vérifié par
+                  Le prix est fixé par l&apos;administrateur et vérifié par
                   Supabase lors de la vente.
                 </small>
               </div>
