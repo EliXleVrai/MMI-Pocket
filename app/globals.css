@@ -1431,3 +1431,32 @@ a:focus-visible {
     font-size: 20px;
   }
 }
+
+
+/* Statistiques économiques du dashboard */
+
+.admin-economy-section {
+  margin-top: 36px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+
+.admin-economy-section .admin-dashboard-heading {
+  margin-bottom: 20px;
+}
+
+.admin-economy-card {
+  background: linear-gradient(145deg, #ffffff, #f7faef);
+}
+
+.admin-economy-card .admin-stat-icon {
+  background: #edf5df;
+}
+
+.admin-economy-error {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: #fff1ed;
+  color: #a33d2c;
+  font-size: 14px;
+}
