@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
@@ -10,99 +11,170 @@ type Extension = {
 
 type Booster = {
   id: string;
-  extension_id: string;
   name: string;
+  extension_id: string;
   energy_cost: number;
   cards_per_pack: number;
   is_active: boolean;
 };
 
-const rarities = [
-  { value: 'common', label: 'Commune' },
-  { value: 'uncommon', label: 'Peu commune' },
-  { value: 'rare', label: 'Rare' },
-  { value: 'epic', label: 'Épique' },
-  { value: 'legendary', label: 'Légendaire' },
-];
+type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
+type Rates = Record<Rarity, number>;
+
+const rarityLabels: Record<Rarity, string> = {
+  common: 'Commune',
+  uncommon: 'Peu commune',
+  rare: 'Rare',
+  epic: 'Épique',
+  legendary: 'Légendaire',
+};
+
+const defaultRates: Rates = {
+  common: 60,
+  uncommon: 25,
+  rare: 10,
+  epic: 4,
+  legendary: 1,
+};
 
 export function BoosterManager() {
   const supabase = createClient();
 
-  const [extensions, setExtensions] = useState<Extension[]>([]);
   const [boosters, setBoosters] = useState<Booster[]>([]);
+  const [extensions, setExtensions] = useState<Extension[]>([]);
   const [name, setName] = useState('');
   const [extensionId, setExtensionId] = useState('');
   const [energyCost, setEnergyCost] = useState(5);
   const [cardsPerPack, setCardsPerPack] = useState(5);
-  const [rates, setRates] = useState<Record<string, number>>({
-    common: 60,
-    uncommon: 25,
-    rare: 10,
-    epic: 4,
-    legendary: 1,
-  });
-
+  const [rates, setRates] = useState<Rates>(defaultRates);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
   async function loadData() {
-    const [extensionResult, boosterResult] = await Promise.all([
+    const [boostersResult, extensionsResult] = await Promise.all([
+      supabase
+        .from('boosters')
+        .select('id, name, extension_id, energy_cost, cards_per_pack, is_active')
+        .order('created_at', { ascending: false }),
       supabase
         .from('extensions')
         .select('id, name')
-        .eq('is_active', true)
         .order('name'),
-      supabase
-        .from('boosters')
-        .select('id, extension_id, name, energy_cost, cards_per_pack, is_active')
-        .order('created_at', { ascending: false }),
     ]);
 
-    if (extensionResult.error) {
-      setError(extensionResult.error.message);
-      return;
+    if (boostersResult.error) {
+      setError(boostersResult.error.message);
+    } else {
+      setBoosters((boostersResult.data ?? []) as Booster[]);
     }
 
-    if (boosterResult.error) {
-      setError(boosterResult.error.message);
-      return;
-    }
-
-    const loadedExtensions = (extensionResult.data ?? []) as Extension[];
-
-    setExtensions(loadedExtensions);
-    setBoosters((boosterResult.data ?? []) as Booster[]);
-
-    if (!extensionId && loadedExtensions.length > 0) {
-      setExtensionId(loadedExtensions[0].id);
+    if (extensionsResult.error) {
+      setError(extensionsResult.error.message);
+    } else {
+      setExtensions((extensionsResult.data ?? []) as Extension[]);
     }
   }
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
-  function updateRate(rarity: string, value: number) {
+  function resetForm() {
+    setName('');
+    setExtensionId('');
+    setEnergyCost(5);
+    setCardsPerPack(5);
+    setRates(defaultRates);
+    setEditingId(null);
+  }
+
+  function updateRate(rarity: Rarity, value: number) {
     setRates((current) => ({
       ...current,
       [rarity]: Math.max(0, value),
     }));
   }
 
+  async function startEditing(booster: Booster) {
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    const { data, error: ratesError } = await supabase
+      .from('booster_card_rates')
+      .select('rarity, weight')
+      .eq('booster_id', booster.id);
+
+    if (ratesError) {
+      setError(ratesError.message);
+      setLoading(false);
+      return;
+    }
+
+    const nextRates = { ...defaultRates };
+
+    for (const row of data ?? []) {
+      nextRates[row.rarity as Rarity] = row.weight;
+    }
+
+    setEditingId(booster.id);
+    setName(booster.name);
+    setExtensionId(booster.extension_id);
+    setEnergyCost(booster.energy_cost);
+    setCardsPerPack(booster.cards_per_pack);
+    setRates(nextRates);
+    setLoading(false);
+
+    document.getElementById('booster-manager-form')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  async function saveRates(boosterId: string) {
+    const rateRows = (Object.entries(rates) as [Rarity, number][])
+      .filter(([, weight]) => weight > 0)
+      .map(([rarity, weight]) => ({
+        booster_id: boosterId,
+        rarity,
+        weight,
+      }));
+
+    if (rateRows.length === 0) {
+      throw new Error('Il faut au moins une rareté avec un poids supérieur à zéro.');
+    }
+
+    const { error: deleteError } = await supabase
+      .from('booster_card_rates')
+      .delete()
+      .eq('booster_id', boosterId);
+
+    if (deleteError) throw deleteError;
+
+    const { error: insertError } = await supabase
+      .from('booster_card_rates')
+      .insert(rateRows);
+
+    if (insertError) throw insertError;
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setLoading(true);
     setError('');
     setMessage('');
 
     try {
-      if (!name.trim()) {
+      const cleanName = name.trim();
+
+      if (!cleanName) {
         throw new Error('Le nom du booster est obligatoire.');
       }
 
       if (!extensionId) {
-        throw new Error('Sélectionne une extension.');
+        throw new Error('Choisis une extension.');
       }
 
       if (!Number.isInteger(energyCost) || energyCost < 0) {
@@ -113,58 +185,48 @@ export function BoosterManager() {
         throw new Error('Le nombre de cartes doit être compris entre 1 et 20.');
       }
 
-      const totalWeight = Object.values(rates).reduce(
-        (total, value) => total + value,
-        0
-      );
+      const rateRows = (Object.entries(rates) as [Rarity, number][])
+        .filter(([, weight]) => weight > 0);
 
-      if (totalWeight <= 0) {
-        throw new Error('La somme des probabilités doit être supérieure à zéro.');
+      if (rateRows.length === 0) {
+        throw new Error('Il faut au moins une rareté avec un poids supérieur à zéro.');
       }
 
-      const { data: booster, error: insertError } = await supabase
-        .from('boosters')
-        .insert({
-          extension_id: extensionId,
-          name: name.trim(),
-          energy_cost: energyCost,
-          cards_per_pack: cardsPerPack,
-          is_active: true,
-        })
-        .select('id')
-        .single();
+      if (editingId) {
+        const { error: updateError } = await supabase
+          .from('boosters')
+          .update({
+            name: cleanName,
+            extension_id: extensionId,
+            energy_cost: energyCost,
+            cards_per_pack: cardsPerPack,
+          })
+          .eq('id', editingId);
 
-      if (insertError) throw insertError;
+        if (updateError) throw updateError;
 
-      const rateRows = rarities
-        .filter((rarity) => rates[rarity.value] > 0)
-        .map((rarity) => ({
-          booster_id: booster.id,
-          rarity: rarity.value,
-          weight: rates[rarity.value],
-        }));
+        await saveRates(editingId);
+        setMessage('Booster modifié avec succès !');
+      } else {
+        const { data: booster, error: insertError } = await supabase
+          .from('boosters')
+          .insert({
+            name: cleanName,
+            extension_id: extensionId,
+            energy_cost: energyCost,
+            cards_per_pack: cardsPerPack,
+            is_active: true,
+          })
+          .select('id')
+          .single();
 
-      const { error: ratesError } = await supabase
-        .from('booster_card_rates')
-        .insert(rateRows);
+        if (insertError) throw insertError;
 
-      if (ratesError) {
-        await supabase.from('boosters').delete().eq('id', booster.id);
-        throw ratesError;
+        await saveRates(booster.id);
+        setMessage('Booster créé avec succès !');
       }
 
-      setName('');
-      setEnergyCost(5);
-      setCardsPerPack(5);
-      setRates({
-        common: 60,
-        uncommon: 25,
-        rare: 10,
-        epic: 4,
-        legendary: 1,
-      });
-
-      setMessage('Booster créé avec succès !');
+      resetForm();
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
@@ -194,18 +256,61 @@ export function BoosterManager() {
     await loadData();
   }
 
+  async function deleteBooster(booster: Booster) {
+    const confirmed = window.confirm(
+      `Supprimer définitivement le booster "${booster.name}" ?\n\nLes ouvertures déjà effectuées seront conservées. Si son historique empêche la suppression, Supabase bloquera l'opération.`
+    );
+
+    if (!confirmed) return;
+
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('boosters')
+        .delete()
+        .eq('id', booster.id);
+
+      if (deleteError) {
+        throw new Error(
+          'Suppression impossible : ce booster possède probablement un historique d’ouverture. Désactive-le pour le retirer du jeu sans perdre les données.'
+        );
+      }
+
+      if (editingId === booster.id) resetForm();
+
+      setMessage('Booster supprimé.');
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de suppression.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function extensionName(id: string) {
+    return extensions.find((extension) => extension.id === id)?.name
+      ?? 'Extension inconnue';
+  }
+
   return (
     <section className="admin-manager">
       <div className="admin-section-heading">
         <div>
           <h2>Boosters</h2>
-          <p>Configure les paquets et leurs probabilités de rareté.</p>
+          <p>Configure les paquets et leurs probabilités de tirage.</p>
         </div>
         <span>{boosters.length} booster(s)</span>
       </div>
 
-      <form className="admin-manager-form" onSubmit={handleSubmit}>
-        <h3>Créer un booster</h3>
+      <form
+        id="booster-manager-form"
+        className="admin-manager-form"
+        onSubmit={handleSubmit}
+      >
+        <h3>{editingId ? 'Modifier un booster' : 'Créer un booster'}</h3>
 
         <label>
           Nom du booster
@@ -235,18 +340,19 @@ export function BoosterManager() {
 
         <div className="admin-booster-fields">
           <label>
-            Prix en énergie
+            Coût en énergie
             <input
               type="number"
               min="0"
               step="1"
               value={energyCost}
               onChange={(event) => setEnergyCost(Number(event.target.value))}
+              required
             />
           </label>
 
           <label>
-            Cartes par booster
+            Cartes par paquet
             <input
               type="number"
               min="1"
@@ -254,45 +360,57 @@ export function BoosterManager() {
               step="1"
               value={cardsPerPack}
               onChange={(event) => setCardsPerPack(Number(event.target.value))}
+              required
             />
           </label>
         </div>
 
-        <h4>Poids des raretés</h4>
-        <p className="admin-help">
-          Plus le poids est élevé, plus la rareté a de chances d’être tirée.
-          Les valeurs sont des poids relatifs, pas des pourcentages directs.
-        </p>
+        <div className="admin-rates-section">
+          <h4>Probabilités de rareté</h4>
+          <p>
+            Les valeurs sont des poids relatifs : elles ne représentent pas
+            directement des pourcentages.
+          </p>
 
-        <div className="admin-rates-grid">
-          {rarities.map((rarity) => (
-            <label key={rarity.value}>
-              {rarity.label}
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={rates[rarity.value]}
-                onChange={(event) =>
-                  updateRate(rarity.value, Number(event.target.value))
-                }
-              />
-            </label>
-          ))}
+          <div className="admin-rates-grid">
+            {(Object.keys(rarityLabels) as Rarity[]).map((rarity) => (
+              <label key={rarity}>
+                {rarityLabels[rarity]}
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={rates[rarity]}
+                  onChange={(event) =>
+                    updateRate(rarity, Number(event.target.value))
+                  }
+                />
+              </label>
+            ))}
+          </div>
         </div>
 
-        <p className="admin-help">
-          Total des poids :{' '}
-          {Object.values(rates).reduce((total, value) => total + value, 0)}
-        </p>
-
         <button type="submit" disabled={loading || extensions.length === 0}>
-          {loading ? 'Création...' : 'Créer le booster'}
+          {loading
+            ? 'Enregistrement...'
+            : editingId
+              ? 'Enregistrer les modifications'
+              : 'Créer le booster'}
         </button>
 
+        {editingId && (
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={resetForm}
+          >
+            Annuler la modification
+          </button>
+        )}
+
         {extensions.length === 0 && (
-          <p className="admin-help">
-            Crée d’abord une extension active pour pouvoir lui associer un booster.
+          <p className="form-error">
+            Crée d'abord une extension pour pouvoir créer un booster.
           </p>
         )}
 
@@ -307,34 +425,49 @@ export function BoosterManager() {
           <p>Aucun booster pour le moment.</p>
         )}
 
-        {boosters.map((booster) => {
-          const extension = extensions.find(
-            (item) => item.id === booster.extension_id
-          );
+        {boosters.map((booster) => (
+          <article className="admin-extension-item" key={booster.id}>
+            <div className="admin-extension-placeholder">🎁</div>
 
-          return (
-            <article className="admin-extension-item" key={booster.id}>
-              <div className="admin-extension-info">
-                <strong>{booster.name}</strong>
-                <span>{extension?.name ?? 'Extension associée'}</span>
-                <span>
-                  {booster.energy_cost} énergie · {booster.cards_per_pack} cartes
-                </span>
-                <span>
-                  {booster.is_active ? 'Actif' : 'Désactivé'}
-                </span>
-              </div>
+            <div className="admin-extension-info">
+              <strong>{booster.name}</strong>
+              <span>{extensionName(booster.extension_id)}</span>
+              <span>
+                ⚡ {booster.energy_cost} · {booster.cards_per_pack} cartes
+              </span>
+              <span>{booster.is_active ? 'Actif' : 'Désactivé'}</span>
+            </div>
+
+            <div className="admin-extension-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void startEditing(booster)}
+                disabled={loading}
+              >
+                Modifier
+              </button>
 
               <button
                 type="button"
                 className="secondary-button"
-                onClick={() => toggleBooster(booster)}
+                onClick={() => void toggleBooster(booster)}
+                disabled={loading}
               >
                 {booster.is_active ? 'Désactiver' : 'Activer'}
               </button>
-            </article>
-          );
-        })}
+
+              <button
+                type="button"
+                className="admin-delete-button"
+                onClick={() => void deleteBooster(booster)}
+                disabled={loading}
+              >
+                Supprimer
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
