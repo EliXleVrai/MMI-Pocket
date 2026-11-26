@@ -443,7 +443,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
           onClick={() => setSelectedCard(null)}
         >
           <div
-            className={`collection-modal rarity-${selectedCard.rarity}`}
+            className={`collection-modal collection-modal-premium rarity-${selectedCard.rarity}`}
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -457,70 +457,100 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
             >
               ×
             </button>
-
-            <div className="collection-modal-image">
-              {selectedCard.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selectedCard.image_url}
-                  alt={selectedCard.name}
-                />
-              ) : (
-                <div className="collection-card-placeholder">🃏</div>
-              )}
+      
+            <div className="collection-modal-art">
+              <div className="collection-modal-art-label">
+                {selectedCard.quantity > 0 ? 'CARTE DÉCOUVERTE' : 'CARTE À DÉCOUVRIR'}
+              </div>
+      
+              <div className="collection-modal-image">
+                {selectedCard.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedCard.image_url}
+                    alt={selectedCard.name}
+                  />
+                ) : (
+                  <div className="collection-card-placeholder">🃏</div>
+                )}
+              </div>
+      
+              <div className="collection-modal-art-footer">
+                <span>
+                  {selectedCard.extension?.name ?? 'Extension inconnue'}
+                </span>
+                {selectedCard.card_number !== null && (
+                  <strong>#{selectedCard.card_number}</strong>
+                )}
+              </div>
             </div>
-
+      
             <div className="collection-modal-info">
+              <div className="collection-modal-topline">
+                <span className="collection-modal-kicker">
+                  FICHE DE COLLECTION
+                </span>
+                <span className={`collection-modal-owned ${selectedCard.quantity > 0 ? 'is-owned' : 'is-missing'}`}>
+                  {selectedCard.quantity > 0 ? '✓ Obtenue' : '? Manquante'}
+                </span>
+              </div>
+      
               <div className="collection-card-badges">
                 <RarityBadge rarity={selectedCard.rarity} />
                 <span className="collection-genre-badge">
                   {selectedCard.genre ?? 'Personnage'}
                 </span>
               </div>
-
+      
               <h2>{selectedCard.name}</h2>
-
-              <p>
-                {selectedCard.description ||
-                  'Aucune description disponible.'}
+      
+              <p className="collection-modal-description">
+                {selectedCard.description || 'Aucune description disponible.'}
               </p>
-
+      
               <div className="collection-modal-details">
                 <span>
-                  Extension :{' '}
+                  Extension
+                  <strong>{selectedCard.extension?.name ?? 'Inconnue'}</strong>
+                </span>
+      
+                <span>
+                  Numéro
                   <strong>
-                    {selectedCard.extension?.name ?? 'Inconnue'}
+                    {selectedCard.card_number !== null
+                      ? `#${selectedCard.card_number}`
+                      : 'Non défini'}
                   </strong>
                 </span>
-
-                {selectedCard.card_number !== null && (
-                  <span>
-                    Numéro : <strong>#{selectedCard.card_number}</strong>
-                  </span>
-                )}
-
+      
                 <span>
-                  Quantité possédée :{' '}
+                  Exemplaires possédés
                   <strong>{selectedCard.quantity}</strong>
                 </span>
               </div>
-
+      
               {selectedCard.quantity > 0 ? (
                 <div className="collection-sale-panel">
-                  <h3>Vendre au serveur</h3>
-
+                  <div className="collection-sale-heading">
+                    <div>
+                      <span className="collection-modal-kicker">ÉCONOMIE</span>
+                      <h3>Vendre au serveur</h3>
+                    </div>
+                    <span className="collection-sale-icon">↗</span>
+                  </div>
+      
                   <div className="collection-sale-price">
                     <span>Prix de rachat unitaire</span>
                     <strong>{selectedCard.buyback_price} pièces</strong>
                   </div>
-
+      
                   {selectedCard.buyback_price > 0 ? (
                     <>
                       <div className="collection-sale-quantity">
                         <label htmlFor="sell-quantity">
-                          Nombre d&apos;exemplaires à vendre
+                          Exemplaires à vendre
                         </label>
-
+      
                         <input
                           id="sell-quantity"
                           type="number"
@@ -530,31 +560,25 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                           value={sellQuantity}
                           onChange={(event) =>
                             setSellQuantity(
-                              Math.max(
-                                1,
-                                Number(event.target.value) || 1
-                              )
+                              Math.max(1, Number(event.target.value) || 1)
                             )
                           }
                         />
                       </div>
-
+      
                       <div className="collection-sale-total">
-                        <span>Tu recevras</span>
+                        <span>Montant reçu</span>
                         <strong>
                           {selectedCard.buyback_price *
-                            Math.min(
-                              sellQuantity,
-                              selectedCard.quantity
-                            )}{' '}
+                            Math.min(sellQuantity, selectedCard.quantity)}{' '}
                           pièces
                         </strong>
                       </div>
-
+      
                       {sellError && (
                         <p className="form-error">{sellError}</p>
                       )}
-
+      
                       <button
                         type="button"
                         className="collection-sell-button"
@@ -565,9 +589,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                           sellQuantity > selectedCard.quantity
                         }
                       >
-                        {selling
-                          ? 'Vente en cours...'
-                          : 'Vendre au serveur'}
+                        {selling ? 'Vente en cours...' : 'Confirmer la vente'}
                       </button>
                     </>
                   ) : (
@@ -575,18 +597,16 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                       Cette carte ne peut pas être rachetée par le serveur.
                     </p>
                   )}
-
+      
                   <small>
-                    Le prix est fixé par l&apos;administrateur et vérifié par
-                    Supabase lors de la vente.
+                    Prix fixé par l'administrateur et vérifié par Supabase.
                   </small>
                 </div>
               ) : (
                 <div className="collection-missing-details">
-                  <strong>Carte non obtenue</strong>
+                  <strong>Cette carte manque à ta collection</strong>
                   <p>
-                    Ouvre des boosters pour découvrir cette carte et
-                    l&apos;ajouter à ton album.
+                    Ouvre des boosters pour tenter de la découvrir et compléter ton album.
                   </p>
                 </div>
               )}
