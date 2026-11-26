@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import { RarityBadge } from '@/components/rarity-badge';
 import { createClient } from '@/lib/supabase/client';
+import { createPortal } from 'react-dom';
 
 export type OwnedCard = {
   id: string;
@@ -437,7 +438,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
         </div>
       )}
 
-      {selectedCard && (
+      {selectedCard && typeof document !== 'undefined' && createPortal(
         <div
           className="collection-modal-overlay"
           onClick={() => setSelectedCard(null)}
@@ -612,7 +613,8 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
               )}
             </div>
           </div>
-        </div>
+          </div>,
+        document.body
       )}
     </div>
   );
