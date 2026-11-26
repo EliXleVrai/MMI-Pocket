@@ -21,19 +21,19 @@ export default async function ExtensionsPage() {
 
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.username) redirect('/choisir-pseudo');
-
+  
   const [
+    { data: profile },
     { data: extensionRows, error: extensionsError },
     { data: cardRows, error: cardsError },
     { data: ownedRows, error: ownedError },
   ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single(),
+
     supabase
       .from('extensions')
       .select('id, name, slug, description, cover_url')
@@ -51,6 +51,8 @@ export default async function ExtensionsPage() {
       .eq('user_id', user.id)
       .gt('quantity', 0),
   ]);
+
+  if (!profile?.username) redirect('/choisir-pseudo');
 
   if (extensionsError) {
     console.error('Erreur extensions :', extensionsError);
