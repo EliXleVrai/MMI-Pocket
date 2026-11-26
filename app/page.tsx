@@ -314,7 +314,6 @@ export default async function Home() {
         ) : (
           <div className="home-featured-grid">
             {featuredCards.map((card) => {
-              const isOwned = (awaitOwnedIdsPlaceholder => awaitOwnedIdsPlaceholder)(false);
               return (
                 <Link
                   href="/collection"
