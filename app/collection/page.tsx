@@ -20,38 +20,61 @@ export default async function CollectionPage() {
 
   if (!profile?.username) redirect('/choisir-pseudo');
 
-  const { data: ownedCards, error } = await supabase
-    .from('player_cards')
+  // Toutes les cartes du jeu
+  const { data: allCards, error: cardsError } = await supabase
+    .from('cards')
     .select(`
-      quantity,
-      cards (
+      id,
+      name,
+      description,
+      image_url,
+      rarity,
+      card_number,
+      buyback_price,
+      extension_id,
+      is_active,
+      extensions (
         id,
-        name,
-        description,
-        image_url,
-        rarity,
-        card_number,
-        buyback_price,
-        extensions (id, name)
+        name
       )
     `)
-    .eq('user_id', user.id)
-    .order('acquired_at', { ascending: false });
+    .order('card_number', { ascending: true });
 
-  if (error) {
-    console.error('Erreur chargement collection :', error);
+  // Cartes possédées par le joueur
+  const { data: ownedRows, error: ownedError } = await supabase
+    .from('player_cards')
+    .select('card_id, quantity')
+    .eq('user_id', user.id)
+    .gt('quantity', 0);
+
+  if (cardsError) {
+    console.error('Erreur chargement des cartes :', cardsError);
   }
 
-  const cards = (ownedCards ?? [])
-    .filter((item) => item.cards)
-    .map((item) => {
-      const card = Array.isArray(item.cards)
-        ? item.cards[0]
-        : item.cards;
+  if (ownedError) {
+    console.error('Erreur chargement de la collection :', ownedError);
+  }
 
-      const extension = Array.isArray(card?.extensions)
+  // Quantités possédées
+  const ownedQuantities = new Map(
+    (ownedRows ?? []).map((item) => [
+      item.card_id,
+      item.quantity,
+    ])
+  );
+
+  // Construction de la collection complète
+  const cards = (allCards ?? [])
+    .filter((card) => {
+      const quantity = ownedQuantities.get(card.id) ?? 0;
+
+      // Les cartes désactivées restent visibles si le joueur les possède.
+      return card.is_active || quantity > 0;
+    })
+    .map((card) => {
+      const extension = Array.isArray(card.extensions)
         ? card.extensions[0]
-        : card?.extensions;
+        : card.extensions;
 
       return {
         id: card.id,
@@ -60,7 +83,7 @@ export default async function CollectionPage() {
         image_url: card.image_url,
         rarity: card.rarity,
         card_number: card.card_number,
-        quantity: item.quantity,
+        quantity: ownedQuantities.get(card.id) ?? 0,
         buyback_price: card.buyback_price ?? 0,
         extension: extension
           ? {
@@ -71,13 +94,15 @@ export default async function CollectionPage() {
       };
     });
 
+  const error = cardsError || ownedError;
+
   return (
     <main className="page-container">
       <h1>Ma collection</h1>
 
       <p className="page-description">
-        Retrouve toutes tes cartes, découvre leurs raretés
-        et complète tes extensions.
+        Découvre toutes les cartes du jeu, retrouve celles que tu possèdes
+        et complète tes extensions !
       </p>
 
       <CollectionView cards={cards} />
