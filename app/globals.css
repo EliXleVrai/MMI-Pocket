@@ -1460,3 +1460,460 @@ a:focus-visible {
   color: #a33d2c;
   font-size: 14px;
 }
+
+
+/* =========================================
+   MMI POCKET — OUVERTURE DES BOOSTERS
+========================================= */
+
+.booster-page {
+  padding-bottom: 70px;
+}
+
+.booster-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 35px;
+}
+
+.booster-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #76934d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.booster-page-heading h1 {
+  margin: 0 0 8px;
+}
+
+.booster-energy-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  box-shadow: 0 5px 18px rgba(40, 55, 30, 0.04);
+}
+
+.booster-energy-display > span {
+  font-size: 27px;
+}
+
+.booster-energy-display div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.booster-energy-display strong {
+  font-size: 18px;
+  color: var(--green-dark);
+}
+
+.booster-energy-display small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.booster-error {
+  padding: 15px 18px;
+  margin-bottom: 22px;
+  color: #a33d2c;
+  background: #fff0ec;
+  border: 1px solid #f4d3ca;
+  border-radius: 13px;
+  font-size: 14px;
+}
+
+.booster-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 22px;
+}
+
+.booster-product {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 8px 25px rgba(40, 55, 30, 0.045);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.booster-product:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(40, 55, 30, 0.09);
+}
+
+.booster-product-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 210px;
+  overflow: hidden;
+  background: linear-gradient(140deg, #eef4e4, #f8faef);
+}
+
+.booster-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.booster-product:hover .booster-product-image img {
+  transform: scale(1.045);
+}
+
+.booster-product-image > span {
+  font-size: 65px;
+}
+
+.booster-product-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 22px;
+}
+
+.booster-product-extension {
+  color: #81975e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.booster-product-content h2 {
+  margin: 8px 0;
+  color: var(--ink);
+  font-size: 21px;
+}
+
+.booster-product-content > p {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.booster-product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.booster-cost {
+  color: #708b43;
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.booster-open-button,
+.booster-again-button {
+  padding: 12px 17px;
+  color: #344329;
+  background: var(--green);
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.booster-open-button:hover:not(:disabled),
+.booster-again-button:hover {
+  background: #b9e75b;
+  transform: translateY(-2px);
+}
+
+.booster-open-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.booster-empty {
+  padding: 65px 20px;
+  text-align: center;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+
+.booster-empty > span {
+  font-size: 55px;
+}
+
+.booster-empty h2 {
+  margin: 15px 0 8px;
+}
+
+.booster-empty p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Résultat de l'ouverture */
+
+.booster-result {
+  margin-top: 45px;
+  padding: 30px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 25px;
+  box-shadow: 0 12px 35px rgba(40, 55, 30, 0.06);
+  animation: booster-result-enter 0.5s ease both;
+}
+
+.booster-result-heading {
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.booster-result-heading > span {
+  display: block;
+  font-size: 38px;
+  animation: booster-sparkle 1.5s ease-in-out infinite;
+}
+
+.booster-result-heading h2 {
+  margin: 10px 0 7px;
+  font-size: 25px;
+}
+
+.booster-result-heading p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.booster-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.booster-won-card {
+  overflow: hidden;
+  background: #f9faf6;
+  border: 1px solid #e7eadf;
+  border-radius: 16px;
+  box-shadow: 0 5px 15px rgba(40, 55, 30, 0.05);
+  animation: booster-card-reveal 0.65s cubic-bezier(.2, .8, .2, 1) both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booster-won-card:hover {
+  transform: translateY(-5px) rotate(-1deg);
+  box-shadow: 0 12px 25px rgba(40, 55, 30, 0.12);
+}
+
+.booster-won-card:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.booster-won-card:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.booster-won-card:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+.booster-won-card:nth-child(5) {
+  animation-delay: 0.48s;
+}
+
+.booster-won-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: linear-gradient(145deg, #edf2e5, #f9faf5);
+}
+
+.booster-won-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.booster-won-image > span {
+  font-size: 48px;
+}
+
+.booster-won-info {
+  padding: 13px;
+}
+
+.booster-won-info h3 {
+  margin: 7px 0;
+  font-size: 15px;
+}
+
+.booster-won-info small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.booster-won-info p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.booster-won-rarity {
+  display: inline-block;
+  padding: 5px 8px;
+  color: #68735a;
+  background: #edf1e7;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* Couleurs des raretés */
+
+.rarity-common {
+  border-color: #dfe4d8;
+}
+
+.rarity-uncommon {
+  border-color: #a9c99b;
+  box-shadow: 0 4px 18px rgba(105, 160, 85, 0.12);
+}
+
+.rarity-rare {
+  border-color: #91b8e6;
+  box-shadow: 0 4px 20px rgba(75, 135, 205, 0.16);
+}
+
+.rarity-rare .booster-won-rarity {
+  color: #3167a0;
+  background: #e4effc;
+}
+
+.rarity-epic {
+  border-color: #c5a0e8;
+  box-shadow: 0 4px 22px rgba(145, 90, 195, 0.2);
+}
+
+.rarity-epic .booster-won-rarity {
+  color: #7743a7;
+  background: #f0e6fb;
+}
+
+.rarity-legendary {
+  border-color: #e8c66c;
+  box-shadow: 0 4px 25px rgba(210, 160, 40, 0.23);
+}
+
+.rarity-legendary .booster-won-rarity {
+  color: #956b13;
+  background: #fff1c9;
+}
+
+.booster-again-button {
+  display: block;
+  min-width: 180px;
+  margin: 28px auto 0;
+}
+
+/* Animations */
+
+@keyframes booster-result-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes booster-card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes booster-sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.18) rotate(5deg);
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 650px) {
+  .booster-page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .booster-energy-display {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .booster-list {
+    grid-template-columns: 1fr;
+  }
+
+  .booster-result {
+    padding: 18px;
+  }
+
+  .booster-result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .booster-product-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .booster-open-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booster-result,
+  .booster-won-card,
+  .booster-result-heading > span {
+    animation: none;
+  }
+
+  .booster-product,
+  .booster-open-button,
+  .booster-won-card {
+    transition: none;
+  }
+}
