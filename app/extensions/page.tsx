@@ -196,7 +196,12 @@ export default async function ExtensionsPage() {
         <section className="extensions-grid">
           {extensionStats.map((extension, index) => (
             <article
-              className="extension-card"
+              className={`extension-card ${
+                extension.totalCount > 0 &&
+                extension.percentage === 100
+                  ? 'extension-card-completed'
+                  : ''
+              }`}
               key={extension.id}
             >
               <div className="extension-cover">
