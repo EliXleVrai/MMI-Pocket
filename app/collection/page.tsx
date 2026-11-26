@@ -31,10 +31,8 @@ export default async function CollectionPage() {
         image_url,
         rarity,
         card_number,
-        extensions (
-          id,
-          name
-        )
+        buyback_price,
+        extensions (id, name)
       )
     `)
     .eq('user_id', user.id)
@@ -63,6 +61,7 @@ export default async function CollectionPage() {
         rarity: card.rarity,
         card_number: card.card_number,
         quantity: item.quantity,
+        buyback_price: card.buyback_price ?? 0,
         extension: extension
           ? {
               id: extension.id,
