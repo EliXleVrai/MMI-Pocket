@@ -599,7 +599,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                   )}
       
                   <small>
-                    Prix fixé par l'administrateur et vérifié par Supabase.
+                    Prix fixé par l&apos;administrateur et vérifié par Supabase.
                   </small>
                 </div>
               ) : (
