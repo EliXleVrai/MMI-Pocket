@@ -235,7 +235,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
       <section className="collection-progress">
         <div className="collection-progress-heading">
           <div>
-            <h2>Progression de l'album</h2>
+            <h2>Progression de l&apos;album</h2>
             <p>{ownedTypes} cartes découvertes sur {cards.length}</p>
           </div>
           <strong>{completion}%</strong>
@@ -509,7 +509,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                     <>
                       <div className="collection-sale-quantity">
                         <label htmlFor="sell-quantity">
-                          Nombre d'exemplaires à vendre
+                          Nombre d&apos;exemplaires à vendre
                         </label>
 
                         <input
@@ -568,7 +568,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                   )}
 
                   <small>
-                    Le prix est fixé par l'administrateur et vérifié par
+                    Le prix est fixé par l&apos;administrateur et vérifié par
                     Supabase lors de la vente.
                   </small>
                 </div>
@@ -577,7 +577,7 @@ export function CollectionView({ cards: initialCards }: { cards: OwnedCard[] }) 
                   <strong>Carte non obtenue</strong>
                   <p>
                     Ouvre des boosters pour découvrir cette carte et
-                    l'ajouter à ton album.
+                    l&apos;ajouter à ton album.
                   </p>
                 </div>
               )}
