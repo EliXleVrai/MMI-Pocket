@@ -60,6 +60,7 @@ export default async function MarketPage() {
     sellerProfiles = data ?? [];
   }
 
+  // Préparation des annonces
   const listings = rows.flatMap((row) => {
     const card = Array.isArray(row.cards)
       ? row.cards[0]
@@ -136,8 +137,11 @@ export default async function MarketPage() {
 
   const priceHistory = priceHistoryRows ?? [];
 
+  // Affichage du marché
   return (
     <main className="page-container">
+
+      {/* Bouton favoris */}
       <div style={{
         maxWidth: 1100,
         margin: '0 auto 20px',
@@ -163,13 +167,14 @@ export default async function MarketPage() {
         </a>
       </div>
 
-    <MarketView
+      {/* Marché */}
       <MarketView
         initialListings={listings}
         ownedCards={ownedCards}
         currentUserId={user.id}
         priceHistory={priceHistory}
       />
+
     </main>
   );
 }
