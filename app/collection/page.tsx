@@ -84,9 +84,13 @@ export default async function CollectionPage() {
       <CollectionView cards={cards} />
 
       {error && (
-        <p className="error-message">
-          Impossible de charger ta collection.
-        </p>
+        <div className="error-message">
+          <strong>Erreur de chargement de la collection</strong>
+          <p>{error.message}</p>
+          <small>Code : {error.code}</small>
+          <small>Détails : {error.details}</small>
+          <small>Conseil : {error.hint}</small>
+        </div>
       )}
     </main>
   );
