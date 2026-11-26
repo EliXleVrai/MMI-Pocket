@@ -410,7 +410,7 @@ export function BoosterManager() {
 
         {extensions.length === 0 && (
           <p className="form-error">
-            Crée d'abord une extension pour pouvoir créer un booster.
+            Crée d&apos;abord une extension pour pouvoir créer un booster.
           </p>
         )}
 
