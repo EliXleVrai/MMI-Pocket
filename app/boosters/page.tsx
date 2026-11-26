@@ -81,10 +81,12 @@ export default function BoostersPage() {
             .select('id, name, energy_cost, cards_per_pack, extension_id')
             .eq('is_active', true)
             .order('name'),
+
           supabase
             .from('extensions')
             .select('id, name, cover_url')
             .eq('is_active', true),
+
           supabase
             .from('player_wallets')
             .select('energy, max_energy')
@@ -185,6 +187,7 @@ export default function BoostersPage() {
 
   return (
     <main className="page-container booster-page">
+
       <div className="booster-page-heading">
         <div>
           <span className="booster-eyebrow">MMI POCKET</span>
@@ -215,7 +218,9 @@ export default function BoostersPage() {
             <div className="booster-empty">
               <span>🎁</span>
               <h2>Aucun booster disponible</h2>
-              <p>Reviens plus tard, de nouveaux boosters arriveront bientôt.</p>
+              <p>
+                Reviens plus tard, de nouveaux boosters arriveront bientôt.
+              </p>
             </div>
           ) : (
             <div className="booster-list">
@@ -250,13 +255,9 @@ export default function BoostersPage() {
                         </span>
 
                         <button
-                          onClick={() => {
-                            if (!isCardRevealed) {
-                              setIsCardRevealed(true);
-                            } else {
-                              nextCard();
-                            }
-                          }}
+                          type="button"
+                          onClick={() => openBooster(booster)}
+                          disabled={openingId !== null}
                         >
                           {openingId === booster.id
                             ? 'Ouverture...'
@@ -272,8 +273,11 @@ export default function BoostersPage() {
         </>
       )}
 
+      {/* OUVERTURE DES CARTES */}
+
       {result && !showSummary && currentCard && (
         <section className="booster-opening">
+
           {result.lucky && (
             <div className="lucky-booster-banner">
               <div className="lucky-booster-stars">✦ ✧ ✦</div>
@@ -286,6 +290,7 @@ export default function BoostersPage() {
               <div className="lucky-booster-stars">✧ ✦ ✧</div>
             </div>
           )}
+
           <div className="booster-opening-heading">
             <span className="booster-eyebrow">OUVERTURE EN COURS</span>
             <h2>Découvre tes cartes !</h2>
@@ -318,15 +323,23 @@ export default function BoostersPage() {
                 result.lucky ? 'lucky-booster-card' : ''
               }`}
               onClick={() => {
-                if (!isCardRevealed) setIsCardRevealed(true);
+                if (!isCardRevealed) {
+                  setIsCardRevealed(true);
+                } else {
+                  nextCard();
+                }
               }}
               role="button"
               tabIndex={0}
-              aria-label="Révéler la carte"
+              aria-label={
+                isCardRevealed
+                  ? 'Passer à la carte suivante'
+                  : 'Révéler la carte'
+              }
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-              
+
                   if (!isCardRevealed) {
                     setIsCardRevealed(true);
                   } else {
@@ -335,14 +348,8 @@ export default function BoostersPage() {
                 }
               }}
             >
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => setShowSummary(true)}
-              >
-                Passer au récapitulatif
-              </button>
               <div className="booster-card-inner">
+
                 <div className="booster-card-face booster-card-back">
                   <div className="booster-card-back-pattern">
                     <span>MMI</span>
@@ -377,6 +384,7 @@ export default function BoostersPage() {
                     )}
                   </div>
                 </div>
+
               </div>
             </div>
           </div>
@@ -399,13 +407,24 @@ export default function BoostersPage() {
                   : 'Voir mes cartes obtenues'}
               </button>
             )}
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setShowSummary(true)}
+            >
+              Passer au récapitulatif
+            </button>
           </div>
+
         </section>
       )}
 
+      {/* RÉCAPITULATIF */}
+
       {result && showSummary && (
         <section className="booster-summary">
-      
+
           {result.lucky && (
             <div className="lucky-summary-banner">
               <span>🌟</span>
@@ -419,48 +438,53 @@ export default function BoostersPage() {
               <span>✨</span>
             </div>
           )}
-        <section className="booster-result">
-          <div className="booster-result-heading">
-            <span>✨</span>
-            <h2>Ton ouverture est terminée !</h2>
-            <p>
-              {result.cards.length} cartes ajoutées à ta collection.
-            </p>
-          </div>
 
-          <div className="booster-result-grid">
-            {result.cards.map((card, index) => (
-              <article
-                className={`booster-won-card rarity-${card.rarity}`}
-                key={`${card.id}-${index}`}
-              >
-                <div className="booster-won-image">
-                  {card.image_url ? (
-                    <img src={card.image_url} alt={card.name} />
-                  ) : (
-                    <span>🃏</span>
-                  )}
-                </div>
+          <section className="booster-result">
+            <div className="booster-result-heading">
+              <span>✨</span>
+              <h2>Ton ouverture est terminée !</h2>
+              <p>
+                {result.cards.length} cartes ajoutées à ta collection.
+              </p>
+            </div>
 
-                <div className="booster-won-info">
-                  <RarityBadge rarity={card.rarity} />
-                  <h3>{card.name}</h3>
-                  {card.card_number !== null && (
-                    <small>#{card.card_number}</small>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
+            <div className="booster-result-grid">
+              {result.cards.map((card, index) => (
+                <article
+                  className={`booster-won-card rarity-${card.rarity}`}
+                  key={`${card.id}-${index}`}
+                >
+                  <div className="booster-won-image">
+                    {card.image_url ? (
+                      <img src={card.image_url} alt={card.name} />
+                    ) : (
+                      <span>🃏</span>
+                    )}
+                  </div>
 
-          <button
-            className="booster-again-button"
-            onClick={closeOpening}
-          >
-            Continuer
-          </button>
+                  <div className="booster-won-info">
+                    <RarityBadge rarity={card.rarity} />
+                    <h3>{card.name}</h3>
+
+                    {card.card_number !== null && (
+                      <small>#{card.card_number}</small>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <button
+              className="booster-again-button"
+              onClick={closeOpening}
+            >
+              Continuer
+            </button>
+          </section>
+
         </section>
       )}
+
     </main>
   );
 }
