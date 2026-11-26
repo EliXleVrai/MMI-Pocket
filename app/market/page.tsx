@@ -105,6 +105,18 @@ export default async function MarketPage() {
   const ownedCards = (ownedRows ?? []).flatMap((row) => {
     const card = Array.isArray(row.cards) ? row.cards[0] : row.cards;
 
+    const { data: priceHistoryRows, error: historyError } =
+  await supabase
+    .from('market_card_daily_prices')
+    .select('card_id, sale_date, average_price, quantity_sold, sales_count')
+    .order('sale_date', { ascending: true });
+
+if (historyError) {
+  console.error('Erreur historique des prix :', historyError);
+}
+
+const priceHistory = priceHistoryRows ?? [];
+
     if (!card) return [];
 
     return [{
@@ -119,6 +131,7 @@ export default async function MarketPage() {
         initialListings={listings}
         ownedCards={ownedCards}
         currentUserId={user.id}
+        priceHistory={priceHistory}
       />
     </main>
   );
