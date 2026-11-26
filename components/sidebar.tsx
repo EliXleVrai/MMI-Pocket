@@ -160,21 +160,6 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-bottom">
-        <div className="sidebar-promo">
-          <div className="promo-icon">
-            <Sparkles size={18} />
-          </div>
-
-          <strong>La collection MMI</strong>
-          <p>
-            Chaque carte raconte un peu de notre promo.
-          </p>
-
-          <span>
-            Découvrir les extensions ↗
-          </span>
-        </div>
-
         <Link href="/profil" className="profile-link">
           <span className="avatar">
             {loading ? (
