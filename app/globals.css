@@ -4310,3 +4310,44 @@ a:focus-visible {
   opacity: .8;
   animation: card-basic-shine 1.1s ease;
 }
+
+/* FIX FINAL : reflet fluide avec disparition progressive */
+
+.collection-card.rarity-epic:not(.collection-card-missing)::before,
+.collection-card.rarity-legendary:not(.collection-card-missing)::before,
+.collection-card.rarity-rare:not(.collection-card-missing)::before {
+  animation: none;
+  opacity: 0;
+}
+
+/* Épique et légendaire */
+.collection-card.rarity-epic:not(.collection-card-missing):hover::before,
+.collection-card.rarity-legendary:not(.collection-card-missing):hover::before {
+  animation: collection-shine-smooth 1.5s ease-in-out forwards;
+}
+
+/* Rare */
+.collection-card.rarity-rare:not(.collection-card-missing):hover::before {
+  animation: collection-shine-smooth 1.3s ease-in-out forwards;
+}
+
+@keyframes collection-shine-smooth {
+  0% {
+    opacity: 0;
+    background-position: 120% 0;
+  }
+
+  20% {
+    opacity: .8;
+  }
+
+  75% {
+    opacity: .8;
+    background-position: 0 50%;
+  }
+
+  100% {
+    opacity: 0;
+    background-position: -120% 100%;
+  }
+}
