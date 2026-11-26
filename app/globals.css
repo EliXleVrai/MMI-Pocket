@@ -2077,3 +2077,322 @@ a:focus-visible {
   }
 }
 
+
+/* =========================================
+   MMI POCKET — RÉVÉLATION UNE CARTE À LA FOIS
+========================================= */
+
+.booster-opening {
+  margin: 35px auto;
+  padding: 30px 20px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 25px;
+  box-shadow: 0 12px 35px rgba(40, 55, 30, 0.06);
+  animation: booster-result-enter 0.45s ease both;
+}
+
+.booster-opening-heading {
+  text-align: center;
+}
+
+.booster-opening-heading h2 {
+  margin: 8px 0;
+  font: 800 27px Manrope, sans-serif;
+}
+
+.booster-opening-heading p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.booster-progress {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+  margin: 23px 0 30px;
+}
+
+.booster-progress-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e5e9df;
+  transition: all 0.3s ease;
+}
+
+.booster-progress-dot.completed {
+  background: #a6ce5e;
+}
+
+.booster-progress-dot.current {
+  width: 25px;
+  border-radius: 10px;
+  background: #789c43;
+}
+
+.booster-single-card-area {
+  display: flex;
+  justify-content: center;
+  perspective: 1200px;
+  padding: 10px 0 25px;
+}
+
+.booster-flip-card {
+  width: min(100%, 290px);
+  aspect-ratio: 3 / 4.3;
+  perspective: 1200px;
+}
+
+.booster-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(.2, .7, .25, 1);
+}
+
+.booster-flip-card.is-revealed .booster-card-inner {
+  transform: rotateY(180deg);
+}
+
+.booster-card-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 19px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 15px 40px rgba(30, 40, 20, 0.16);
+}
+
+.booster-card-back {
+  display: grid;
+  place-items: center;
+  padding: 15px;
+  background:
+    radial-gradient(circle at center, #dff0bf 0, transparent 55%),
+    linear-gradient(145deg, #405a2d, #24371e);
+  border: 5px solid #e5efcf;
+}
+
+.booster-card-back-pattern {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(255,255,255,.4);
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+}
+
+.booster-card-back-pattern span {
+  font: 800 48px Manrope, sans-serif;
+  letter-spacing: -4px;
+  color: #d4f49a;
+}
+
+.booster-card-back-pattern strong {
+  font: 800 19px Manrope, sans-serif;
+  letter-spacing: 5px;
+}
+
+.booster-card-back-pattern div {
+  font-size: 45px;
+  color: #d4f49a;
+  margin: 12px 0;
+}
+
+.booster-card-back-pattern small {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: #d8e9c5;
+}
+
+.booster-card-front {
+  display: flex;
+  flex-direction: column;
+  transform: rotateY(180deg);
+  background: #f9faf6;
+  border: 3px solid #e6eadf;
+}
+
+.booster-single-image {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(145deg, #edf2e5, #f9faf5);
+}
+
+.booster-single-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.booster-single-image > span {
+  font-size: 70px;
+}
+
+.booster-single-info {
+  flex-shrink: 0;
+  padding: 12px 14px;
+  background: white;
+}
+
+.booster-single-info .rarity-badge {
+  margin-bottom: 6px;
+}
+
+.booster-single-info h3 {
+  margin: 0 0 4px;
+  font: 800 17px Manrope, sans-serif;
+}
+
+.booster-single-info small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.booster-single-info p {
+  margin: 7px 0 0;
+  color: #747c6d;
+  font-size: 11px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.booster-reveal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.booster-reveal-button {
+  min-width: 220px;
+  padding: 15px 24px;
+  border: none;
+  border-radius: 13px;
+  background: var(--green);
+  color: #344329;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(130, 165, 75, 0.2);
+  transition: transform .2s ease, background .2s ease;
+}
+
+.booster-reveal-button:hover {
+  background: #b9e75b;
+  transform: translateY(-3px);
+}
+
+/* Effets des cartes rares */
+
+.booster-flip-card.rarity-rare .booster-card-front {
+  border-color: #91b8e6;
+}
+
+.booster-flip-card.rarity-epic .booster-card-front {
+  border: 4px solid #bd91e7;
+  box-shadow: 0 0 25px rgba(145, 90, 195, 0.3);
+}
+
+.booster-flip-card.rarity-legendary .booster-card-front {
+  border: 4px solid #e8c66c;
+  box-shadow: 0 0 35px rgba(210, 160, 40, 0.4);
+}
+
+.booster-flip-card.rarity-epic.is-revealed {
+  animation: booster-epic-glow 2s ease-in-out infinite;
+}
+
+.booster-flip-card.rarity-legendary.is-revealed {
+  animation: booster-legendary-glow 1.7s ease-in-out infinite;
+}
+
+@keyframes booster-epic-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(145, 90, 195, .2));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(145, 90, 195, .6));
+  }
+}
+
+@keyframes booster-legendary-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(210, 160, 40, .3));
+  }
+  50% {
+    filter: drop-shadow(0 0 25px rgba(230, 180, 50, .8));
+  }
+}
+
+/* Récapitulatif compact */
+
+.booster-result-grid {
+  grid-template-columns: repeat(auto-fill, minmax(125px, 160px));
+  justify-content: center;
+}
+
+.booster-won-card {
+  max-width: 160px;
+}
+
+.booster-won-image {
+  max-height: 205px;
+}
+
+.booster-won-info .rarity-badge {
+  padding: 4px 7px;
+  font-size: 9px;
+}
+
+@media (max-width: 600px) {
+  .booster-opening {
+    padding: 22px 12px;
+  }
+
+  .booster-opening-heading h2 {
+    font-size: 22px;
+  }
+
+  .booster-flip-card {
+    width: min(78vw, 270px);
+  }
+
+  .booster-single-info {
+    padding: 9px 11px;
+  }
+
+  .booster-single-info h3 {
+    font-size: 15px;
+  }
+
+  .booster-reveal-button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booster-card-inner,
+  .booster-progress-dot,
+  .booster-reveal-button {
+    transition: none;
+  }
+
+  .booster-flip-card {
+    animation: none !important;
+  }
+}
