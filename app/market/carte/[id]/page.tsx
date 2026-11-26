@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { MarketPriceChart } from '@/components/market-price-chart';
+import { MarketCardBuy } from '@/components/market-card-buy';
 
 const rarityLabels: Record<string, string> = {
   common: 'Commune',
@@ -257,10 +258,7 @@ export default async function MarketCardPage({ params }: Props) {
               Aucun joueur ne vend cette carte actuellement.
             </p>
           ) : (
-            <div style={{
-              display: 'grid',
-              gap: 12,
-            }}>
+            <div style={{ display: 'grid', gap: 12 }}>
               {listings.map((listing) => {
                 const seller = sellers.find(
                   (item) => item.id === listing.seller_id
@@ -294,18 +292,32 @@ export default async function MarketCardPage({ params }: Props) {
                       </p>
                     </div>
 
-                    <strong style={{
-                      color: '#355640',
-                      fontSize: 18,
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
                     }}>
-                      {Number(listing.unit_price).toLocaleString('fr-FR')} pièces
-                      <span style={{
-                        fontSize: 11,
-                        fontWeight: 500,
+                      <strong style={{
+                        color: '#355640',
+                        fontSize: 18,
                       }}>
-                        {' '} / carte
-                      </span>
-                    </strong>
+                        {Number(listing.unit_price).toLocaleString('fr-FR')} pièces
+                        <span style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                        }}>
+                          {' '} / carte
+                        </span>
+                      </strong>
+
+                      <MarketCardBuy
+                        listingId={listing.id}
+                        quantityAvailable={listing.quantity}
+                        unitPrice={Number(listing.unit_price)}
+                        sellerId={listing.seller_id}
+                        currentUserId={user.id}
+                      />
+                    </div>
                   </article>
                 );
               })}
