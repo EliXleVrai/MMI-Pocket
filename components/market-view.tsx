@@ -294,21 +294,52 @@ export function MarketView({
                 return (
                   <article className="market-listing-card" key={listing.id}>
                     <div className="market-card-image">
-                      {listing.card.image_url ? (
-                        <img
-                          src={listing.card.image_url}
-                          alt={listing.card.name}
-                        />
-                      ) : (
-                        <span>🃏</span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/market/carte/${listing.card_id}`)}
+                        aria-label={`Voir la fiche de ${listing.card.name}`}
+                        style={{
+                          border: 'none',
+                          padding: 0,
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          width: '100%',
+                        }}
+                      >
+                        {listing.card.image_url ? (
+                          <img
+                            src={listing.card.image_url}
+                            alt={listing.card.name}
+                          />
+                        ) : (
+                          <span>🃏</span>
+                        )}
+                      </button>
+                    
                       <span className={`market-rarity ${listing.card.rarity}`}>
                         {rarityLabels[listing.card.rarity] ?? listing.card.rarity}
                       </span>
                     </div>
 
                     <div className="market-listing-content">
-                      <h3>{listing.card.name}</h3>
+                      <h3>
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/market/carte/${listing.card_id}`)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            padding: 0,
+                            color: 'inherit',
+                            font: 'inherit',
+                            fontWeight: 'inherit',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {listing.card.name}
+                        </button>
+                      </h3>
                       <p className="market-seller">
                         Vendeur : @{listing.seller_username || 'Joueur'}
                       </p>
@@ -507,7 +538,23 @@ export function MarketView({
                   </div>
 
                   <div className="market-my-listing-info">
-                    <strong>{listing.card.name}</strong>
+                    <strong>
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/market/carte/${listing.card_id}`)}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          padding: 0,
+                          color: 'inherit',
+                          font: 'inherit',
+                          fontWeight: 'inherit',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {listing.card.name}
+                      </button>
+                    </strong>
                     <span>{listing.quantity} carte(s)</span>
                     <span>{listing.unit_price.toLocaleString('fr-FR')} pièces / carte</span>
                   </div>
