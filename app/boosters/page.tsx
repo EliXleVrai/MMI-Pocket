@@ -31,6 +31,7 @@ type WonCard = {
 type OpeningResult = {
   opening_id: string;
   energy_spent: number;
+  lucky?: boolean;
   cards: WonCard[];
 };
 
