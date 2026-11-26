@@ -1,7 +1,7 @@
-
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { CardCreator } from '@/components/card-creator';
+import { ExtensionManager } from '@/components/extension-manager';
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -27,13 +27,17 @@ export default async function AdminPage() {
       <h1>Administration</h1>
 
       <p className="page-description">
-        Gère les cartes et le contenu de MMI Pocket.
+        Gère les extensions, les cartes et le contenu de MMI Pocket.
       </p>
 
       <section className="profile-card">
         <h2>Bienvenue, @{profile.username}</h2>
         <p>Tu es connecté en tant qu&apos;administrateur.</p>
       </section>
+
+      <ExtensionManager />
+
+      <div className="admin-dashboard-divider" />
 
       <CardCreator />
     </main>
