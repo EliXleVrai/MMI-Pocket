@@ -50,6 +50,8 @@ export default function BoostersPage() {
   const [extensions, setExtensions] = useState<Extension[]>([]);
   const [energy, setEnergy] = useState(0);
   const [maxEnergy, setMaxEnergy] = useState(20);
+  const [nextEnergyAt, setNextEnergyAt] = useState<string | null>(null);
+  const [energyCountdown, setEnergyCountdown] = useState('');
   const [loading, setLoading] = useState(true);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [result, setResult] = useState<OpeningResult | null>(null);
@@ -81,17 +83,13 @@ export default function BoostersPage() {
             .select('id, name, energy_cost, cards_per_pack, extension_id')
             .eq('is_active', true)
             .order('name'),
-
+      
           supabase
             .from('extensions')
             .select('id, name, cover_url')
             .eq('is_active', true),
-
-          supabase
-            .from('player_wallets')
-            .select('energy, max_energy')
-            .eq('user_id', user.id)
-            .single(),
+      
+          supabase.rpc('recharge_player_energy'),
         ]);
 
       if (boostersResult.error) {
@@ -111,6 +109,7 @@ export default function BoostersPage() {
       } else {
         setEnergy(walletResult.data.energy);
         setMaxEnergy(walletResult.data.max_energy);
+        setNextEnergyAt(walletResult.data.next_energy_at);
       }
 
       setLoading(false);
@@ -118,6 +117,53 @@ export default function BoostersPage() {
 
     void loadData();
   }, [supabase]);
+
+  useEffect(() => {
+    if (!nextEnergyAt || energy >= maxEnergy) {
+      setEnergyCountdown('');
+      return;
+    }
+  
+    async function refreshEnergy() {
+      const { data, error } = await supabase.rpc(
+        'recharge_player_energy'
+      );
+  
+      if (error || !data) return;
+  
+      setEnergy(data.energy);
+      setMaxEnergy(data.max_energy);
+      setNextEnergyAt(data.next_energy_at);
+    }
+  
+    function updateCountdown() {
+      const remaining = Math.max(
+        0,
+        Math.ceil(
+          (new Date(nextEnergyAt!).getTime() - Date.now()) / 1000
+        )
+      );
+  
+      if (remaining <= 0) {
+        setNextEnergyAt(null);
+        void refreshEnergy();
+        return;
+      }
+  
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+  
+      setEnergyCountdown(
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+      );
+    }
+  
+    updateCountdown();
+  
+    const timer = setInterval(updateCountdown, 1000);
+  
+    return () => clearInterval(timer);
+  }, [nextEnergyAt, energy, maxEnergy, supabase]);
 
   async function openBooster(booster: Booster) {
     if (openingId) return;
@@ -149,6 +195,13 @@ export default function BoostersPage() {
     const opening = data as OpeningResult;
 
     setResult(opening);
+
+    if (energy >= maxEnergy) {
+      setNextEnergyAt(
+        new Date(Date.now() + 5 * 60 * 1000).toISOString()
+      );
+    }
+    
     setEnergy((current) => current - opening.energy_spent);
     setOpeningId(null);
   }
@@ -201,7 +254,13 @@ export default function BoostersPage() {
           <span>⚡</span>
           <div>
             <strong>{energy} / {maxEnergy}</strong>
-            <small>Énergie disponible</small>
+            <small>
+              {energy >= maxEnergy
+                ? 'Énergie maximale'
+                : energyCountdown
+                  ? `Prochaine énergie dans ${energyCountdown}`
+                  : 'Recharge en cours...'}
+            </small>
           </div>
         </div>
       </div>
