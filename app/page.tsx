@@ -224,7 +224,7 @@ export default async function Home() {
             <h2>Ta progression</h2>
           </div>
           <Link href="/collection" className="home-text-link">
-            Voir l'album <ArrowRight size={15} />
+            Voir l&apos;album <ArrowRight size={15} />
           </Link>
         </div>
 
@@ -301,7 +301,7 @@ export default async function Home() {
         {!user ? (
           <div className="home-empty-cards">
             <Sparkles size={25} />
-            <strong>Ta collection t'attend</strong>
+            <strong>Ta collection t&apos;attend</strong>
             <p>Connecte-toi pour découvrir tes cartes.</p>
             <Link href="/login">Se connecter <ArrowRight size={15} /></Link>
           </div>
@@ -309,7 +309,7 @@ export default async function Home() {
           <div className="home-empty-cards">
             <Gift size={25} />
             <strong>Aucune carte disponible pour le moment</strong>
-            <p>Les cartes apparaîtront ici dès que l'extension sera publiée.</p>
+            <p>Les cartes apparaîtront ici dès que l&apos;extension sera publiée.</p>
           </div>
         ) : (
           <div className="home-featured-grid">
