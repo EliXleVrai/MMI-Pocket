@@ -20,7 +20,7 @@ export default async function MarketPage() {
 
   if (!profile?.username) redirect('/choisir-pseudo');
 
-  // Annonces actuellement disponibles
+  // Chargement des annonces
   const { data: listingRows, error: listingsError } = await supabase
     .from('market_listings')
     .select(`
@@ -46,7 +46,7 @@ export default async function MarketPage() {
 
   const rows = listingRows ?? [];
 
-  // Récupération des pseudos des vendeurs
+  // Chargement des pseudos vendeurs
   const sellerIds = [...new Set(rows.map((row) => row.seller_id))];
 
   let sellerProfiles: { id: string; username: string }[] = [];
@@ -61,7 +61,9 @@ export default async function MarketPage() {
   }
 
   const listings = rows.flatMap((row) => {
-    const card = Array.isArray(row.cards) ? row.cards[0] : row.cards;
+    const card = Array.isArray(row.cards)
+      ? row.cards[0]
+      : row.cards;
 
     if (!card) return [];
 
@@ -81,7 +83,7 @@ export default async function MarketPage() {
     }];
   });
 
-  // Cartes possédées par le joueur et disponibles pour la vente
+  // Chargement de la collection du joueur
   const { data: ownedRows, error: ownedError } = await supabase
     .from('player_cards')
     .select(`
@@ -103,19 +105,9 @@ export default async function MarketPage() {
   }
 
   const ownedCards = (ownedRows ?? []).flatMap((row) => {
-    const card = Array.isArray(row.cards) ? row.cards[0] : row.cards;
-
-    const { data: priceHistoryRows, error: historyError } =
-  await supabase
-    .from('market_card_daily_prices')
-    .select('card_id, sale_date, average_price, quantity_sold, sales_count')
-    .order('sale_date', { ascending: true });
-
-if (historyError) {
-  console.error('Erreur historique des prix :', historyError);
-}
-
-const priceHistory = priceHistoryRows ?? [];
+    const card = Array.isArray(row.cards)
+      ? row.cards[0]
+      : row.cards;
 
     if (!card) return [];
 
@@ -124,6 +116,25 @@ const priceHistory = priceHistoryRows ?? [];
       quantity: row.quantity,
     }];
   });
+
+  // Chargement de l'historique des prix
+  const { data: priceHistoryRows, error: historyError } =
+    await supabase
+      .from('market_card_daily_prices')
+      .select(`
+        card_id,
+        sale_date,
+        average_price,
+        quantity_sold,
+        sales_count
+      `)
+      .order('sale_date', { ascending: true });
+
+  if (historyError) {
+    console.error('Erreur historique des prix :', historyError);
+  }
+
+  const priceHistory = priceHistoryRows ?? [];
 
   return (
     <main className="page-container">
