@@ -3258,3 +3258,799 @@ a:focus-visible {
     font-size: 0.8rem;
   }
 }
+
+
+/* ==========================================
+   MMI POCKET — ALBUM DE COLLECTION TCG
+========================================== */
+
+.collection-view {
+  display: flex;
+  flex-direction: column;
+  gap: 27px;
+  padding-bottom: 40px;
+}
+
+/* STATISTIQUES */
+
+.collection-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.collection-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 18px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 5px 16px #26331b06;
+}
+
+.collection-stat span {
+  color: #92998e;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.collection-stat strong {
+  color: #344329;
+  font: 800 23px Manrope, sans-serif;
+  letter-spacing: -.7px;
+}
+
+/* PROGRESSION GÉNÉRALE */
+
+.collection-progress {
+  padding: 24px;
+  border: 1px solid #e3ebd9;
+  border-radius: 19px;
+  background: linear-gradient(120deg, #f0f7e7, #ffffff);
+}
+
+.collection-progress-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.collection-progress-heading h2,
+.collection-extensions > h2 {
+  margin: 0 0 6px;
+  font: 800 19px Manrope, sans-serif;
+  letter-spacing: -.5px;
+}
+
+.collection-progress-heading p {
+  margin: 0;
+  color: #899281;
+  font-size: 11px;
+}
+
+.collection-progress-heading > strong {
+  color: #5d8430;
+  font: 800 32px Manrope, sans-serif;
+}
+
+.collection-progress-track {
+  width: 100%;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e7eddf;
+}
+
+.collection-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a8d653, #c9f36b);
+  transition: width .5s ease;
+}
+
+.collection-progress-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+  color: #899281;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* PROGRESSION DES EXTENSIONS */
+
+.collection-extensions > h2 {
+  margin-bottom: 14px;
+}
+
+.collection-extension-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.collection-extension-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.collection-extension-card:hover {
+  border-color: #b5d78b;
+  transform: translateY(-2px);
+}
+
+.collection-extension-card.active {
+  background: #f2f8e9;
+  border-color: #9fc66b;
+  box-shadow: 0 0 0 2px #c9f36b30;
+}
+
+.collection-extension-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.collection-extension-heading strong {
+  font-size: 12px;
+  color: #384a2c;
+}
+
+.collection-extension-heading span {
+  color: #71953d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.collection-extension-card small {
+  color: #92998e;
+  font-size: 10px;
+}
+
+/* RECHERCHE ET FILTRES */
+
+.collection-toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(150px, 210px));
+  gap: 10px;
+}
+
+.collection-search,
+.collection-filter {
+  width: 100%;
+  min-width: 0;
+  height: 45px;
+  padding: 0 13px;
+  border: 1px solid #e3e9de;
+  border-radius: 11px;
+  outline: none;
+  background: white;
+  color: #344329;
+  font-size: 11px;
+}
+
+.collection-search:focus,
+.collection-filter:focus {
+  border-color: #a9d94c;
+  box-shadow: 0 0 0 3px #c9f36b30;
+}
+
+.collection-search::placeholder {
+  color: #a0a69b;
+}
+
+.collection-status-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -13px;
+}
+
+.collection-status-filters button {
+  padding: 9px 15px;
+  border: 1px solid #e6eadf;
+  border-radius: 30px;
+  background: white;
+  color: #788171;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.collection-status-filters button:hover {
+  border-color: #b5d78b;
+  color: #536d32;
+}
+
+.collection-status-filters button.active {
+  background: #344329;
+  border-color: #344329;
+  color: white;
+}
+
+/* TITRE DE L'ALBUM */
+
+.collection-results {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.collection-results h2 {
+  margin: 0;
+  font: 800 21px Manrope, sans-serif;
+  letter-spacing: -.7px;
+}
+
+.collection-results span {
+  color: #969e90;
+  font-size: 10px;
+}
+
+/* GRILLE DES CARTES */
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 17px;
+}
+
+.collection-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 8px;
+  overflow: hidden;
+  text-align: left;
+  border: 1px solid #e5e9df;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 4px 13px #26331b08;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+
+.collection-card:hover {
+  transform: translateY(-4px);
+  border-color: #c4dba7;
+  box-shadow: 0 10px 24px #26331b12;
+}
+
+.collection-card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #eef2e9, #dfe7d6);
+}
+
+.collection-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s, filter .3s;
+}
+
+.collection-card:hover .collection-card-image img {
+  transform: scale(1.04);
+}
+
+/* SILHOUETTES DES CARTES MANQUANTES */
+
+.collection-card-missing .collection-card-image {
+  background:
+    radial-gradient(circle at 50% 40%, #66705d, transparent 65%),
+    linear-gradient(145deg, #424b3d, #20271f);
+}
+
+.collection-card-missing .collection-card-image img {
+  filter: brightness(0) opacity(.32);
+  object-fit: contain;
+  padding: 15px;
+}
+
+.collection-card-missing .collection-card-info strong {
+  color: #a0a69b;
+  font-style: italic;
+}
+
+.collection-missing-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ffffffa8;
+  font: 800 42px Manrope, sans-serif;
+  text-shadow: 0 3px 15px #00000070;
+  pointer-events: none;
+}
+
+.collection-owned-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #c9f36b;
+  color: #344329;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 2px 7px #00000020;
+}
+
+.collection-quantity {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #ffffffed;
+  color: #344329;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 2px 8px #00000018;
+}
+
+.collection-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 55px;
+  color: #a9b99b;
+}
+
+/* INFORMATIONS DES CARTES */
+
+.collection-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 11px 5px 5px;
+  min-width: 0;
+}
+
+.collection-card-info strong {
+  width: 100%;
+  overflow: hidden;
+  color: #344329;
+  font: 800 12px Manrope, sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-card-info > span:last-of-type {
+  max-width: 100%;
+  overflow: hidden;
+  color: #92998e;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-card-info small {
+  color: #a0a69b;
+  font-size: 9px;
+}
+
+/* RARETÉS */
+
+.collection-card.rarity-rare {
+  border-color: #c7dcf3;
+}
+
+.collection-card.rarity-epic {
+  border-color: #dfc8ef;
+  box-shadow: 0 4px 15px #a77bc315;
+}
+
+.collection-card.rarity-legendary {
+  border-color: #ead9a8;
+  box-shadow: 0 4px 17px #d7ad4418;
+}
+
+.collection-card.rarity-legendary:hover {
+  box-shadow: 0 8px 25px #d7ad4440;
+}
+
+/* ÉTAT VIDE */
+
+.collection-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 55px 20px;
+  text-align: center;
+  border: 1px dashed #dce5d5;
+  border-radius: 17px;
+  background: #fbfcf9;
+}
+
+.collection-empty > span {
+  margin-bottom: 12px;
+  font-size: 42px;
+}
+
+.collection-empty h3 {
+  margin: 0 0 7px;
+  color: #344329;
+  font: 800 17px Manrope, sans-serif;
+}
+
+.collection-empty p {
+  margin: 0;
+  color: #92998e;
+  font-size: 11px;
+}
+
+/* MODALE DE DÉTAIL */
+
+.collection-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: #182018a8;
+  backdrop-filter: blur(7px);
+  animation: collection-modal-fade .2s ease;
+}
+
+@keyframes collection-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.collection-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(180px, .85fr) 1.15fr;
+  gap: 25px;
+  width: min(100%, 760px);
+  max-height: calc(100vh - 40px);
+  padding: 25px;
+  overflow-y: auto;
+  border: 1px solid #e8eddf;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 25px 80px #00000035;
+  animation: collection-modal-enter .25s ease;
+}
+
+@keyframes collection-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.collection-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e7ebe3;
+  border-radius: 50%;
+  background: white;
+  color: #626b5c;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.collection-modal-close:hover {
+  background: #f1f6e9;
+}
+
+.collection-modal-image {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  min-height: 250px;
+  overflow: hidden;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #edf3e5, #dce9cd);
+}
+
+.collection-modal-image img {
+  display: block;
+  width: 100%;
+  max-height: 430px;
+  object-fit: contain;
+}
+
+.collection-modal-image .collection-card-placeholder {
+  min-height: 250px;
+}
+
+.collection-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-width: 0;
+  padding-top: 10px;
+}
+
+.collection-modal-info h2 {
+  margin: 0;
+  color: #344329;
+  font: 800 25px Manrope, sans-serif;
+  letter-spacing: -.8px;
+}
+
+.collection-modal-info > p {
+  margin: 0;
+  color: #81897b;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.collection-modal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid #e8ece3;
+  border-radius: 12px;
+  background: #fafbf8;
+}
+
+.collection-modal-details span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #8b9385;
+  font-size: 10px;
+}
+
+.collection-modal-details strong {
+  color: #47583a;
+  text-align: right;
+}
+
+/* VENTE */
+
+.collection-sale-panel {
+  margin-top: 0;
+  padding: 17px;
+  border-color: #e1ead7;
+  background: #f7faf3;
+}
+
+.collection-sale-panel h3 {
+  color: #344329;
+  font: 800 15px Manrope, sans-serif;
+}
+
+.collection-sale-price span,
+.collection-sale-total span {
+  color: #7c8772;
+  font-size: 10px;
+}
+
+.collection-sale-price strong {
+  font-size: 12px;
+}
+
+.collection-sale-total strong {
+  font-size: 19px;
+}
+
+.collection-sale-quantity label {
+  color: #68745e;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.collection-sale-quantity input {
+  min-height: 40px;
+  outline: none;
+}
+
+.collection-sale-quantity input:focus {
+  border-color: #a9d94c;
+  box-shadow: 0 0 0 3px #c9f36b30;
+}
+
+.collection-sell-button {
+  background: #344329;
+}
+
+.collection-sell-button:hover:not(:disabled) {
+  background: #536d32;
+  transform: translateY(-1px);
+}
+
+.collection-no-buyback {
+  margin: 0;
+}
+
+.collection-sale-panel small {
+  font-size: 9px;
+}
+
+.collection-missing-details {
+  padding: 17px;
+  border: 1px solid #e5eadf;
+  border-radius: 13px;
+  background: #f5f8f0;
+}
+
+.collection-missing-details strong {
+  color: #526b36;
+  font-size: 12px;
+}
+
+.collection-missing-details p {
+  margin: 7px 0 0;
+  color: #858e7c;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 850px) {
+  .collection-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .collection-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .collection-search {
+    grid-column: 1 / -1;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .collection-view {
+    gap: 21px;
+  }
+
+  .collection-stats {
+    gap: 8px;
+  }
+
+  .collection-stat {
+    padding: 13px;
+    gap: 7px;
+  }
+
+  .collection-stat strong {
+    font-size: 19px;
+  }
+
+  .collection-stat span {
+    font-size: 9px;
+  }
+
+  .collection-progress {
+    padding: 17px;
+  }
+
+  .collection-progress-heading h2 {
+    font-size: 16px;
+  }
+
+  .collection-progress-heading > strong {
+    font-size: 27px;
+  }
+
+  .collection-extension-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-search {
+    grid-column: auto;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
+  .collection-card {
+    padding: 6px;
+    border-radius: 12px;
+  }
+
+  .collection-card-info {
+    padding: 8px 3px 4px;
+  }
+
+  .collection-card-info strong {
+    font-size: 11px;
+  }
+
+  .collection-status-filters {
+    gap: 6px;
+  }
+
+  .collection-status-filters button {
+    padding: 8px 11px;
+    font-size: 9px;
+  }
+
+  .collection-modal-overlay {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .collection-modal {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-height: none;
+    margin: auto 0;
+    padding: 16px;
+    border-radius: 17px;
+  }
+
+  .collection-modal-image {
+    position: relative;
+    min-height: 0;
+    height: 230px;
+  }
+
+  .collection-modal-image img {
+    height: 100%;
+    max-height: 230px;
+  }
+
+  .collection-modal-info {
+    gap: 11px;
+  }
+
+  .collection-modal-info h2 {
+    font-size: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-card,
+  .collection-progress-fill,
+  .collection-modal,
+  .collection-modal-overlay {
+    animation: none;
+    transition: none;
+  }
+}
