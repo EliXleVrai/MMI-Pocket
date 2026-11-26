@@ -2613,6 +2613,21 @@ a:focus-visible {
   }
 }
 
+.buyback-price-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  border: 1px solid #dce9dc;
+  border-radius: 12px;
+  background: #f5faf5;
+}
+
+.buyback-price-field small {
+  color: #647568;
+}
+
 .admin-card-buyback {
   display: inline-flex;
   align-items: center;
