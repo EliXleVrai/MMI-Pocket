@@ -274,6 +274,18 @@ export default function BoostersPage() {
 
       {result && !showSummary && currentCard && (
         <section className="booster-opening">
+          {result.lucky && (
+            <div className="lucky-booster-banner">
+              <div className="lucky-booster-stars">✦ ✧ ✦</div>
+              <div className="lucky-booster-icon">🌟</div>
+              <h2>BOOSTER CHANCEUX !</h2>
+              <p>
+                Une chance sur 500 !
+                Toutes tes cartes sont épiques ou légendaires !
+              </p>
+              <div className="lucky-booster-stars">✧ ✦ ✧</div>
+            </div>
+          )}
           <div className="booster-opening-heading">
             <span className="booster-eyebrow">OUVERTURE EN COURS</span>
             <h2>Découvre tes cartes !</h2>
