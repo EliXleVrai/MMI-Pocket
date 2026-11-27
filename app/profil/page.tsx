@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ProfileEditForm } from '@/components/profile-edit-form';
+import { ProfileAuthLinks } from '@/components/profile-auth-links';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -35,6 +36,16 @@ export default async function ProfilePage() {
     redirect('/choisir-pseudo');
   }
 
+  const linkedProviders = [
+    ...new Set(
+      (user.identities ?? [])
+        .map((identity) => identity.provider)
+        .filter((provider): provider is string =>
+          provider === 'google' || provider === 'discord'
+        )
+    ),
+  ];
+
   return (
     <main className="page-container">
       <section className="profile-header">
@@ -58,6 +69,11 @@ export default async function ProfilePage() {
           initialUsername={profile.username}
           initialDisplayName={profile.display_name || ''}
         />
+      </section>
+
+      <section className="profile-card">
+        <h2>Comptes connectés</h2>
+        <ProfileAuthLinks initialProviders={linkedProviders} />
       </section>
 
       <section className="profile-card">
