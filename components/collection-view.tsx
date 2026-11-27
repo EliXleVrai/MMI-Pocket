@@ -273,7 +273,11 @@ export function CollectionView({
 
         <div className="collection-progress-track">
           <div
-            className="collection-progress-fill"
+            className={`collection-progress-fill ${
+              completion === 100 && cards.length > 0
+                ? 'progress-fill-completed'
+                : ''
+            }`}
             style={{ width: `${completion}%` }}
           />
         </div>
@@ -315,7 +319,11 @@ export function CollectionView({
 
                 <div className="collection-progress-track">
                   <div
-                    className="collection-progress-fill"
+                    className={`collection-progress-fill ${
+                      extension.total > 0 && extension.percentage === 100
+                        ? 'progress-fill-completed'
+                        : ''
+                    }`}
                     style={{
                       width: `${extension.percentage}%`,
                     }}
