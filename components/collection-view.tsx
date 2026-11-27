@@ -51,8 +51,8 @@ export function CollectionView({
   const [selling, setSelling] = useState(false);
   const [sellError, setSellError] = useState('');
   const [sellMessage, setSellMessage] = useState('');
+  const [showSellConfirmation, setShowSellConfirmation] = useState(false);
 
-  // Une carte est découverte si elle a déjà été obtenue.
   const isDiscovered = (card: OwnedCard) =>
     card.discovered === true || card.quantity > 0;
 
@@ -170,12 +170,6 @@ export function CollectionView({
 
     const total = selectedCard.buyback_price * sellQuantity;
 
-    const confirmed = window.confirm(
-      `Vendre ${sellQuantity} exemplaire(s) de "${selectedCard.name}" pour ${total} pièces ?`
-    );
-
-    if (!confirmed) return;
-
     setSelling(true);
 
     const { error } = await supabase.rpc('sell_card_to_server', {
@@ -217,6 +211,7 @@ export function CollectionView({
         : null
     );
 
+    setShowSellConfirmation(false);
     setSellQuantity(1);
     setSelling(false);
   }
@@ -226,6 +221,14 @@ export function CollectionView({
     setSellQuantity(1);
     setSellError('');
     setSellMessage('');
+    setShowSellConfirmation(false);
+  }
+
+  function closeCard() {
+    if (selling) return;
+
+    setSelectedCard(null);
+    setShowSellConfirmation(false);
   }
 
   return (
@@ -483,244 +486,339 @@ export function CollectionView({
       {selectedCard &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div
-            className="collection-modal-overlay"
-            onClick={() => setSelectedCard(null)}
-          >
+          <>
             <div
-              className={`collection-modal collection-modal-premium rarity-${selectedCard.rarity}`}
-              onClick={(event) => event.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label={
-                isDiscovered(selectedCard)
-                  ? `Détail de ${selectedCard.name}`
-                  : 'Carte inconnue'
-              }
+              className="collection-modal-overlay"
+              onClick={closeCard}
             >
-              <button
-                type="button"
-                className="collection-modal-close"
-                onClick={() => setSelectedCard(null)}
-                aria-label="Fermer"
+              <div
+                className={`collection-modal collection-modal-premium rarity-${selectedCard.rarity}`}
+                onClick={(event) => event.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label={
+                  isDiscovered(selectedCard)
+                    ? `Détail de ${selectedCard.name}`
+                    : 'Carte inconnue'
+                }
               >
-                ×
-              </button>
+                <button
+                  type="button"
+                  className="collection-modal-close"
+                  onClick={closeCard}
+                  aria-label="Fermer"
+                >
+                  ×
+                </button>
 
-              <div className="collection-modal-art">
-                <div className="collection-modal-art-label">
-                  {isDiscovered(selectedCard)
-                    ? 'CARTE DÉCOUVERTE'
-                    : 'CARTE À DÉCOUVRIR'}
-                </div>
-
-                <div className="collection-modal-image">
-                  {isDiscovered(selectedCard) && selectedCard.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={selectedCard.image_url}
-                      alt={selectedCard.name}
-                    />
-                  ) : (
-                    <div className="collection-card-placeholder">
-                      🃏
-                    </div>
-                  )}
-
-                  {!isDiscovered(selectedCard) && (
-                    <span className="collection-missing-label">?</span>
-                  )}
-                </div>
-
-                {isDiscovered(selectedCard) && (
-                  <div className="collection-modal-art-footer">
-                    <span>
-                      {selectedCard.extension?.name ??
-                        'Extension inconnue'}
-                    </span>
-
-                    {selectedCard.card_number !== null && (
-                      <strong>
-                        #{selectedCard.card_number}
-                      </strong>
-                    )}
+                <div className="collection-modal-art">
+                  <div className="collection-modal-art-label">
+                    {isDiscovered(selectedCard)
+                      ? 'CARTE DÉCOUVERTE'
+                      : 'CARTE À DÉCOUVRIR'}
                   </div>
-                )}
-              </div>
 
-              <div className="collection-modal-info">
-                <div className="collection-modal-topline">
-                  <span className="collection-modal-kicker">
-                    FICHE DE COLLECTION
-                  </span>
-
-                  <span
-                    className={`collection-modal-owned ${
-                      selectedCard.quantity > 0
-                        ? 'is-owned'
-                        : 'is-missing'
-                    }`}
-                  >
-                    {selectedCard.quantity > 0
-                      ? '✓ Obtenue'
-                      : isDiscovered(selectedCard)
-                        ? '0 copie'
-                        : '? Manquante'}
-                  </span>
-                </div>
-
-                <div className="collection-card-badges">
-                  <RarityBadge rarity={selectedCard.rarity} />
-
-                  <span className="collection-genre-badge">
-                    {selectedCard.genre ?? 'Personnage'}
-                  </span>
-                </div>
-
-                <h2>
-                  {isDiscovered(selectedCard)
-                    ? selectedCard.name
-                    : 'Carte inconnue'}
-                </h2>
-
-                <p className="collection-modal-description">
-                  {isDiscovered(selectedCard)
-                    ? selectedCard.description ||
-                      'Aucune description disponible.'
-                    : 'Découvre cette carte pour révéler ses informations.'}
-                </p>
-
-                {isDiscovered(selectedCard) ? (
-                  <>
-                    <div className="collection-modal-details">
-                      <span>
-                        Extension
-                        <strong>
-                          {selectedCard.extension?.name ?? 'Inconnue'}
-                        </strong>
-                      </span>
-
-                      <span>
-                        Numéro
-                        <strong>
-                          {selectedCard.card_number !== null
-                            ? `#${selectedCard.card_number}`
-                            : 'Non défini'}
-                        </strong>
-                      </span>
-
-                      <span>
-                        Exemplaires possédés
-                        <strong>{selectedCard.quantity}</strong>
-                      </span>
-                    </div>
-
-                    {selectedCard.quantity > 0 && (
-                      <div className="collection-sale-panel">
-                        <div className="collection-sale-heading">
-                          <div>
-                            <span className="collection-modal-kicker">
-                              ÉCONOMIE
-                            </span>
-                            <h3>Vendre au serveur</h3>
-                          </div>
-
-                          <span className="collection-sale-icon">↗</span>
-                        </div>
-
-                        <div className="collection-sale-price">
-                          <span>Prix de rachat unitaire</span>
-                          <strong>
-                            {selectedCard.buyback_price} pièces
-                          </strong>
-                        </div>
-
-                        {selectedCard.buyback_price > 0 ? (
-                          <>
-                            <div className="collection-sale-quantity">
-                              <label htmlFor="sell-quantity">
-                                Exemplaires à vendre
-                              </label>
-
-                              <input
-                                id="sell-quantity"
-                                type="number"
-                                min="1"
-                                max={selectedCard.quantity}
-                                step="1"
-                                value={sellQuantity}
-                                onChange={(event) =>
-                                  setSellQuantity(
-                                    Math.max(
-                                      1,
-                                      Number(event.target.value) || 1
-                                    )
-                                  )
-                                }
-                              />
-                            </div>
-
-                            <div className="collection-sale-total">
-                              <span>Montant reçu</span>
-
-                              <strong>
-                                {selectedCard.buyback_price *
-                                  Math.min(
-                                    sellQuantity,
-                                    selectedCard.quantity
-                                  )}{' '}
-                                pièces
-                              </strong>
-                            </div>
-
-                            {sellError && (
-                              <p className="form-error">{sellError}</p>
-                            )}
-
-                            <button
-                              type="button"
-                              className="collection-sell-button"
-                              onClick={sellCard}
-                              disabled={
-                                selling ||
-                                sellQuantity < 1 ||
-                                sellQuantity > selectedCard.quantity
-                              }
-                            >
-                              {selling
-                                ? 'Vente en cours...'
-                                : 'Confirmer la vente'}
-                            </button>
-                          </>
-                        ) : (
-                          <p className="collection-no-buyback">
-                            Cette carte ne peut pas être rachetée par le
-                            serveur.
-                          </p>
-                        )}
-
-                        <small>
-                          Prix fixé par l&apos;administrateur et vérifié
-                          par Supabase.
-                        </small>
+                  <div className="collection-modal-image">
+                    {isDiscovered(selectedCard) &&
+                    selectedCard.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selectedCard.image_url}
+                        alt={selectedCard.name}
+                      />
+                    ) : (
+                      <div className="collection-card-placeholder">
+                        🃏
                       </div>
                     )}
-                  </>
-                ) : (
-                  <div className="collection-missing-details">
-                    <strong>
-                      Cette carte manque à ta collection
-                    </strong>
 
-                    <p>
-                      Ouvre des boosters pour tenter de la découvrir
-                      et compléter ton album.
-                    </p>
+                    {!isDiscovered(selectedCard) && (
+                      <span className="collection-missing-label">?</span>
+                    )}
                   </div>
-                )}
+
+                  {isDiscovered(selectedCard) && (
+                    <div className="collection-modal-art-footer">
+                      <span>
+                        {selectedCard.extension?.name ??
+                          'Extension inconnue'}
+                      </span>
+
+                      {selectedCard.card_number !== null && (
+                        <strong>
+                          #{selectedCard.card_number}
+                        </strong>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="collection-modal-info">
+                  <div className="collection-modal-topline">
+                    <span className="collection-modal-kicker">
+                      FICHE DE COLLECTION
+                    </span>
+
+                    <span
+                      className={`collection-modal-owned ${
+                        selectedCard.quantity > 0
+                          ? 'is-owned'
+                          : 'is-missing'
+                      }`}
+                    >
+                      {selectedCard.quantity > 0
+                        ? '✓ Obtenue'
+                        : isDiscovered(selectedCard)
+                          ? '0 copie'
+                          : '? Manquante'}
+                    </span>
+                  </div>
+
+                  <div className="collection-card-badges">
+                    <RarityBadge rarity={selectedCard.rarity} />
+
+                    <span className="collection-genre-badge">
+                      {selectedCard.genre ?? 'Personnage'}
+                    </span>
+                  </div>
+
+                  <h2>
+                    {isDiscovered(selectedCard)
+                      ? selectedCard.name
+                      : 'Carte inconnue'}
+                  </h2>
+
+                  <p className="collection-modal-description">
+                    {isDiscovered(selectedCard)
+                      ? selectedCard.description ||
+                        'Aucune description disponible.'
+                      : 'Découvre cette carte pour révéler ses informations.'}
+                  </p>
+
+                  {isDiscovered(selectedCard) ? (
+                    <>
+                      <div className="collection-modal-details">
+                        <span>
+                          Extension
+                          <strong>
+                            {selectedCard.extension?.name ?? 'Inconnue'}
+                          </strong>
+                        </span>
+
+                        <span>
+                          Numéro
+                          <strong>
+                            {selectedCard.card_number !== null
+                              ? `#${selectedCard.card_number}`
+                              : 'Non défini'}
+                          </strong>
+                        </span>
+
+                        <span>
+                          Exemplaires possédés
+                          <strong>{selectedCard.quantity}</strong>
+                        </span>
+                      </div>
+
+                      {selectedCard.quantity > 0 && (
+                        <div className="collection-sale-panel">
+                          <div className="collection-sale-heading">
+                            <div>
+                              <span className="collection-modal-kicker">
+                                ÉCONOMIE
+                              </span>
+                              <h3>Vendre au serveur</h3>
+                            </div>
+
+                            <span className="collection-sale-icon">↗</span>
+                          </div>
+
+                          <div className="collection-sale-price">
+                            <span>Prix de rachat unitaire</span>
+                            <strong>
+                              {selectedCard.buyback_price} pièces
+                            </strong>
+                          </div>
+
+                          {selectedCard.buyback_price > 0 ? (
+                            <>
+                              <div className="collection-sale-quantity">
+                                <label htmlFor="sell-quantity">
+                                  Exemplaires à vendre
+                                </label>
+
+                                <input
+                                  id="sell-quantity"
+                                  type="number"
+                                  min="1"
+                                  max={selectedCard.quantity}
+                                  step="1"
+                                  value={sellQuantity}
+                                  onChange={(event) =>
+                                    setSellQuantity(
+                                      Math.max(
+                                        1,
+                                        Number(event.target.value) || 1
+                                      )
+                                    )
+                                  }
+                                />
+                              </div>
+
+                              <div className="collection-sale-total">
+                                <span>Montant reçu</span>
+
+                                <strong>
+                                  {selectedCard.buyback_price *
+                                    Math.min(
+                                      sellQuantity,
+                                      selectedCard.quantity
+                                    )}{' '}
+                                  pièces
+                                </strong>
+                              </div>
+
+                              {sellError && (
+                                <p className="form-error">{sellError}</p>
+                              )}
+
+                              <button
+                                type="button"
+                                className="collection-sell-button"
+                                onClick={() => {
+                                  setSellError('');
+                                  setShowSellConfirmation(true);
+                                }}
+                                disabled={
+                                  selling ||
+                                  sellQuantity < 1 ||
+                                  sellQuantity > selectedCard.quantity ||
+                                  !Number.isInteger(sellQuantity)
+                                }
+                              >
+                                Continuer
+                              </button>
+                            </>
+                          ) : (
+                            <p className="collection-no-buyback">
+                              Cette carte ne peut pas être rachetée par le
+                              serveur.
+                            </p>
+                          )}
+
+                          <small>
+                            Prix fixé par l&apos;administrateur et vérifié
+                            par Supabase.
+                          </small>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="collection-missing-details">
+                      <strong>
+                        Cette carte manque à ta collection
+                      </strong>
+
+                      <p>
+                        Ouvre des boosters pour tenter de la découvrir
+                        et compléter ton album.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>,
+
+            {showSellConfirmation && (
+              <div
+                className="game-confirm-overlay"
+                onClick={() => {
+                  if (!selling) setShowSellConfirmation(false);
+                }}
+              >
+                <div
+                  className="game-confirm-box"
+                  onClick={(event) => event.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="game-confirm-title"
+                >
+                  <div className="game-confirm-icon">🪙</div>
+
+                  <span className="game-confirm-kicker">
+                    CONFIRMATION DE TRANSACTION
+                  </span>
+
+                  <h2 id="game-confirm-title">
+                    Vendre cette carte ?
+                  </h2>
+
+                  <p className="game-confirm-description">
+                    Tu es sur le point de vendre cette carte au serveur.
+                  </p>
+
+                  <div className="game-confirm-card">
+                    {selectedCard.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selectedCard.image_url}
+                        alt={selectedCard.name}
+                      />
+                    ) : (
+                      <div className="game-confirm-card-placeholder">
+                        🃏
+                      </div>
+                    )}
+
+                    <div>
+                      <strong>{selectedCard.name}</strong>
+                      <span>{sellQuantity} exemplaire(s)</span>
+                    </div>
+                  </div>
+
+                  <div className="game-confirm-total">
+                    <span>Tu recevras</span>
+                    <strong>
+                      {selectedCard.buyback_price * sellQuantity} pièces
+                    </strong>
+                  </div>
+
+                  {sellQuantity === selectedCard.quantity && (
+                    <p className="game-confirm-warning">
+                      ⚠️ Tu vas vendre tous tes exemplaires de cette carte.
+                      Elle restera dans ta collection avec 0 copie.
+                    </p>
+                  )}
+
+                  {sellError && (
+                    <p className="game-confirm-error">{sellError}</p>
+                  )}
+
+                  <div className="game-confirm-actions">
+                    <button
+                      type="button"
+                      className="game-confirm-cancel"
+                      disabled={selling}
+                      onClick={() => setShowSellConfirmation(false)}
+                    >
+                      Annuler
+                    </button>
+
+                    <button
+                      type="button"
+                      className="game-confirm-accept"
+                      disabled={selling}
+                      onClick={sellCard}
+                    >
+                      {selling
+                        ? 'Vente en cours...'
+                        : 'Confirmer la vente'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>,
           document.body
         )}
     </div>
