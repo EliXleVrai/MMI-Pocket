@@ -236,7 +236,11 @@ export function CollectionView({
         </div>
       </div>
 
-      <section className="collection-progress">
+      <section
+        className={`collection-progress ${
+          completion === 100 ? 'collection-progress-completed' : ''
+        }`}
+      >
         <div className="collection-progress-heading">
           <div>
             <h2>Progression de l&apos;album</h2>
@@ -272,6 +276,10 @@ export function CollectionView({
                 key={extension.id}
                 className={`collection-extension-card ${
                   extensionFilter === extension.id ? 'active' : ''
+                } ${
+                  extension.total > 0 && extension.percentage === 100
+                    ? 'collection-extension-card-completed'
+                    : ''
                 }`}
                 onClick={() =>
                   setExtensionFilter(
