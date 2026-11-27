@@ -7812,3 +7812,12 @@ h1 span {
   background: linear-gradient(90deg, #d6ad3e, #f3d77e);
   box-shadow: 0 0 8px rgba(224, 181, 63, 0.22);
 }
+
+/* Pourcentages dorés lorsque la progression est terminée */
+
+.collection-progress-label.progress-fill-completed,
+.extensions-progress-label.progress-fill-completed,
+.extension-progress-label.progress-fill-completed {
+  color: #d6ad3e;
+  font-weight: 800;
+}
