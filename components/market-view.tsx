@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -76,6 +76,8 @@ export function MarketView({
 
   const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'mine'>('buy');
   const [listings, setListings] = useState(initialListings);
+  const [currentOwnedCards, setCurrentOwnedCards] = useState(ownedCards);
+
   const [search, setSearch] = useState('');
   const [selectedCard, setSelectedCard] = useState<OwnedCard | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -88,6 +90,65 @@ export function MarketView({
   const [confirmation, setConfirmation] =
     useState<MarketConfirmation | null>(null);
   const [confirmationError, setConfirmationError] = useState('');
+
+  // Synchronisation des données reçues du serveur
+  useEffect(() => {
+    setListings(initialListings);
+  }, [initialListings]);
+
+  useEffect(() => {
+    setCurrentOwnedCards(ownedCards);
+  }, [ownedCards]);
+
+  // Abonnement Supabase Realtime
+  useEffect(() => {
+    let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    function scheduleRefresh() {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+
+      refreshTimeout = setTimeout(() => {
+        router.refresh();
+      }, 250);
+    }
+
+    const channel = supabase
+      .channel(`market-realtime-${currentUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'market_listings',
+        },
+        () => {
+          scheduleRefresh();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_cards',
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        () => {
+          scheduleRefresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, currentUserId, router]);
 
   const myListings = listings.filter(
     (listing) => listing.seller_id === currentUserId
@@ -105,10 +166,10 @@ export function MarketView({
   }, [listings, search, currentUserId]);
 
   const filteredOwnedCards = useMemo(() => {
-    return ownedCards.filter((card) =>
+    return currentOwnedCards.filter((card) =>
       card.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [ownedCards, search]);
+  }, [currentOwnedCards, search]);
 
   async function createListing() {
     if (!selectedCard) return;
@@ -144,6 +205,7 @@ export function MarketView({
     setSelectedCard(null);
     setQuantity(1);
     setPrice(100);
+
     router.refresh();
   }
 
@@ -182,6 +244,7 @@ export function MarketView({
     if (!confirmation) return;
 
     const action = confirmation;
+
     setLoading(action.listing.id);
     setConfirmationError('');
 
@@ -195,6 +258,7 @@ export function MarketView({
 
       if (error) {
         setConfirmationError(error.message);
+        router.refresh();
         return;
       }
 
@@ -204,7 +268,10 @@ export function MarketView({
         previous
           .map((item) =>
             item.id === action.listing.id
-              ? { ...item, quantity: item.quantity - action.quantity }
+              ? {
+                  ...item,
+                  quantity: item.quantity - action.quantity,
+                }
               : item
           )
           .filter((item) => item.quantity > 0)
@@ -223,6 +290,7 @@ export function MarketView({
 
     if (error) {
       setConfirmationError(error.message);
+      router.refresh();
       return;
     }
 
@@ -232,11 +300,13 @@ export function MarketView({
 
     setMessage('Annonce annulée. Tes cartes ont été rendues.');
     setConfirmation(null);
+
     router.refresh();
   }
 
   function closeConfirmation() {
     if (loading) return;
+
     setConfirmation(null);
     setConfirmationError('');
   }
@@ -249,6 +319,7 @@ export function MarketView({
           <h1>Marché</h1>
           <p>Achète, vends et échange tes cartes avec les autres joueurs.</p>
         </div>
+
         <div className="market-header-icon">↗</div>
       </div>
 
@@ -476,6 +547,7 @@ export function MarketView({
                   ) : (
                     <span>🃏</span>
                   )}
+
                   <strong>{card.name}</strong>
                   <small>{card.quantity} possédée(s)</small>
                 </button>
@@ -604,7 +676,9 @@ export function MarketView({
                         {listing.card.name}
                       </button>
                     </strong>
+
                     <span>{listing.quantity} carte(s)</span>
+
                     <span>
                       {listing.unit_price.toLocaleString('fr-FR')} pièces /
                       carte
@@ -675,6 +749,7 @@ export function MarketView({
 
                 <div>
                   <strong>{confirmation.listing.card.name}</strong>
+
                   <span>
                     {confirmation.type === 'buy'
                       ? `${confirmation.quantity} exemplaire(s)`
