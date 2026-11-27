@@ -7821,3 +7821,11 @@ h1 span {
   color: #d6ad3e;
   font-weight: 800;
 }
+
+/* Pourcentages dorés lorsque la progression est terminée */
+
+.progress-percentage-completed {
+  color: #d6ad3e !important;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(224, 181, 63, 0.18);
+}
