@@ -268,7 +268,13 @@ export function CollectionView({
             </p>
           </div>
 
-          <strong>{completion}%</strong>
+          <strong className={
+            completion === 100 && cards.length > 0
+              ? 'progress-percentage-completed'
+              : ''
+          }>
+            {completion}%
+          </strong>
         </div>
 
         <div className="collection-progress-track">
