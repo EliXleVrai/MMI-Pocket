@@ -164,7 +164,11 @@ export default async function ExtensionsPage() {
 
           <div className="extensions-progress-track">
             <div
-              className="extensions-progress-fill"
+              className={`extensions-progress-fill ${
+                totalCards > 0 && globalPercentage === 100
+                  ? 'progress-fill-completed'
+                  : ''
+              }`}
               style={{ width: `${globalPercentage}%` }}
             />
           </div>
@@ -258,7 +262,11 @@ export default async function ExtensionsPage() {
 
                 <div className="extension-progress-track">
                   <div
-                    className="extension-progress-fill"
+                    className={`extension-progress-fill ${
+                      extension.totalCount > 0 && extension.percentage === 100
+                        ? 'progress-fill-completed'
+                        : ''
+                    }`}
                     style={{
                       width: `${extension.percentage}%`,
                     }}
