@@ -1,5 +1,7 @@
+
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { ProfileEditForm } from '@/components/profile-edit-form';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -50,13 +52,26 @@ export default async function ProfilePage() {
       </section>
 
       <section className="profile-card">
-        <h2>Informations du joueur</h2>
+        <h2>Modifier mon profil</h2>
+
+        <ProfileEditForm
+          initialUsername={profile.username}
+          initialDisplayName={profile.display_name || ''}
+        />
+      </section>
+
+      <section className="profile-card">
+        <h2>Informations du compte</h2>
+
         <p><strong>Pseudo :</strong> {profile.username}</p>
+
         <p>
           <strong>Nom affiché :</strong>{' '}
           {profile.display_name || 'Non renseigné'}
         </p>
+
         <p><strong>Email :</strong> {user.email}</p>
+
         <p>
           <strong>Inscription :</strong>{' '}
           {new Date(user.created_at).toLocaleDateString('fr-FR')}
@@ -65,10 +80,12 @@ export default async function ProfilePage() {
 
       <section className="profile-card">
         <h2>Portefeuille</h2>
+
         <div className="profile-wallet">
           <p>🪙 Pièces</p>
           <strong>{wallet?.coins ?? 0}</strong>
         </div>
+
         <div className="profile-wallet">
           <p>⚡ Énergie</p>
           <strong>{wallet?.energy ?? 0}</strong>
