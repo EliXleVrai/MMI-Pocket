@@ -54,7 +54,7 @@ export function CollectionView({
 
   // Une carte est découverte si elle a déjà été obtenue.
   const isDiscovered = (card: OwnedCard) =>
-    card.discovered || card.quantity > 0;
+    card.discovered === true || card.quantity > 0;
 
   const extensions = useMemo(() => {
     const unique = new Map<string, string>();
