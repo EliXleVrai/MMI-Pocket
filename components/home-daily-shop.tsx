@@ -191,7 +191,7 @@ export function HomeDailyShop({
           <div>
             <span className="home-section-eyebrow">BOUTIQUE QUOTIDIENNE</span>
             <h2>Les offres du jour</h2>
-            <p>Utilise tes pièces pour obtenir de l'énergie.</p>
+            <p>Utilise tes pièces pour obtenir de l&apos;énergie.</p>
           </div>
         </div>
 
@@ -227,7 +227,7 @@ export function HomeDailyShop({
             <span className="home-shop-offer-icon">
               <Zap size={20} />
             </span>
-            <span className="home-shop-offer-tag">À l'unité</span>
+            <span className="home-shop-offer-tag">À l&apos;unité</span>
           </div>
 
           <h3>1 énergie</h3>
@@ -266,7 +266,7 @@ export function HomeDailyShop({
           </strong>
 
           <p>
-            {status.pack5_purchases}/5 achats aujourd'hui
+            {status.pack5_purchases}/5 achats aujourd&apos;hui
           </p>
 
           <button
@@ -297,7 +297,7 @@ export function HomeDailyShop({
           </strong>
 
           <p>
-            {status.pack10_purchases}/5 achats aujourd'hui
+            {status.pack10_purchases}/5 achats aujourd&apos;hui
           </p>
 
           <button
