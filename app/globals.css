@@ -7165,3 +7165,24 @@ h1 span {
 .admin-provider-status.is-disconnected .admin-provider-dot {
   background: #c4c9c0;
 }
+
+
+/* =========================================
+   HALO DORÉ — COLLECTION TERMINÉE
+========================================= */
+
+.collection-progress-completed,
+.collection-extension-card-completed {
+  border-color: #e5c66b !important;
+  animation: extension-golden-aura 3s ease-in-out infinite;
+}
+
+.collection-progress-completed:hover,
+.collection-extension-card-completed:hover {
+  border-color: #d6ad3e !important;
+  animation-play-state: paused;
+  box-shadow:
+    0 0 18px rgba(224, 181, 63, 0.35),
+    0 0 38px rgba(224, 181, 63, 0.18),
+    0 12px 30px rgba(35, 55, 35, 0.09);
+}
