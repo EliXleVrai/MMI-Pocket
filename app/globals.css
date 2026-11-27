@@ -7803,3 +7803,12 @@ h1 span {
 .home-progress-completed .home-progress-track span {
   background: linear-gradient(90deg, #d6ad3e, #f3d77e);
 }
+
+/* Barres de progression dorées lorsque terminées */
+
+.collection-progress-fill.progress-fill-completed,
+.extensions-progress-fill.progress-fill-completed,
+.extension-progress-fill.progress-fill-completed {
+  background: linear-gradient(90deg, #d6ad3e, #f3d77e);
+  box-shadow: 0 0 8px rgba(224, 181, 63, 0.22);
+}
