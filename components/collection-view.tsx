@@ -320,7 +320,13 @@ export function CollectionView({
               >
                 <div className="collection-extension-heading">
                   <strong>{extension.name}</strong>
-                  <span>{extension.percentage}%</span>
+                  <span className={
+                    extension.total > 0 && extension.percentage === 100
+                      ? 'progress-percentage-completed'
+                      : ''
+                  }>
+                    {extension.percentage}%
+                  </span>
                 </div>
 
                 <div className="collection-progress-track">
