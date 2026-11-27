@@ -61,13 +61,21 @@ export function UsernameForm() {
         id="username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
-        placeholder="ex. eliott_mmi"
+        placeholder="Ton pseudo"
         minLength={3}
         maxLength={20}
         required
       />
 
-      <small>3 à 20 caractères, lettres, chiffres et _.</small>
+      <small
+        style={{
+          display: 'block',
+          marginTop: '6px',
+          marginBottom: '18px',
+        }}
+      >
+        3 à 20 caractères, lettres, chiffres et _.
+      </small>
 
       <label htmlFor="displayName">Nom affiché (facultatif)</label>
       <input
