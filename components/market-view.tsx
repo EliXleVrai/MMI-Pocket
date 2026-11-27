@@ -2,6 +2,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { MarketPriceChart } from '@/components/market-price-chart';
@@ -44,6 +45,18 @@ type Props = {
   currentUserId: string;
 };
 
+type MarketConfirmation =
+  | {
+      type: 'buy';
+      listing: Listing;
+      quantity: number;
+      total: number;
+    }
+  | {
+      type: 'cancel';
+      listing: Listing;
+    };
+
 const rarityLabels: Record<string, string> = {
   common: 'Commune',
   uncommon: 'Peu commune',
@@ -59,7 +72,7 @@ export function MarketView({
   priceHistory,
 }: Props) {
   const router = useRouter();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const [activeTab, setActiveTab] = useState<'buy' | 'sell' | 'mine'>('buy');
   const [listings, setListings] = useState(initialListings);
@@ -71,6 +84,10 @@ export function MarketView({
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [confirmation, setConfirmation] =
+    useState<MarketConfirmation | null>(null);
+  const [confirmationError, setConfirmationError] = useState('');
 
   const myListings = listings.filter(
     (listing) => listing.seller_id === currentUserId
@@ -130,7 +147,7 @@ export function MarketView({
     router.refresh();
   }
 
-  async function buyListing(listing: Listing) {
+  function buyListing(listing: Listing) {
     const amount = buyQuantities[listing.id] ?? 1;
 
     if (amount < 1 || amount > listing.quantity) {
@@ -138,76 +155,90 @@ export function MarketView({
       return;
     }
 
-    const total = amount * listing.unit_price;
-
-    if (
-      !window.confirm(
-        `Acheter ${amount} exemplaire(s) de ${listing.card.name} pour ${total} pièces ?`
-      )
-    ) {
-      return;
-    }
-
-    setLoading(listing.id);
     setMessage('');
     setErrorMessage('');
+    setConfirmationError('');
 
-    const { error } = await supabase.rpc('buy_market_listing', {
-      p_listing_id: listing.id,
-      p_quantity: amount,
+    setConfirmation({
+      type: 'buy',
+      listing,
+      quantity: amount,
+      total: amount * listing.unit_price,
     });
-
-    setLoading(null);
-
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
-
-    setMessage('Achat effectué avec succès !');
-    setListings((previous) =>
-      previous
-        .map((item) =>
-          item.id === listing.id
-            ? { ...item, quantity: item.quantity - amount }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-
-    router.refresh();
   }
 
-  async function cancelListing(listing: Listing) {
-    if (
-      !window.confirm(
-        `Annuler cette annonce et récupérer ${listing.quantity} carte(s) ?`
-      )
-    ) {
+  function cancelListing(listing: Listing) {
+    setMessage('');
+    setErrorMessage('');
+    setConfirmationError('');
+
+    setConfirmation({
+      type: 'cancel',
+      listing,
+    });
+  }
+
+  async function confirmMarketAction() {
+    if (!confirmation) return;
+
+    const action = confirmation;
+    setLoading(action.listing.id);
+    setConfirmationError('');
+
+    if (action.type === 'buy') {
+      const { error } = await supabase.rpc('buy_market_listing', {
+        p_listing_id: action.listing.id,
+        p_quantity: action.quantity,
+      });
+
+      setLoading(null);
+
+      if (error) {
+        setConfirmationError(error.message);
+        return;
+      }
+
+      setMessage('Achat effectué avec succès !');
+
+      setListings((previous) =>
+        previous
+          .map((item) =>
+            item.id === action.listing.id
+              ? { ...item, quantity: item.quantity - action.quantity }
+              : item
+          )
+          .filter((item) => item.quantity > 0)
+      );
+
+      setConfirmation(null);
+      router.refresh();
       return;
     }
 
-    setLoading(listing.id);
-    setMessage('');
-    setErrorMessage('');
-
     const { error } = await supabase.rpc('cancel_market_listing', {
-      p_listing_id: listing.id,
+      p_listing_id: action.listing.id,
     });
 
     setLoading(null);
 
     if (error) {
-      setErrorMessage(error.message);
+      setConfirmationError(error.message);
       return;
     }
 
     setListings((previous) =>
-      previous.filter((item) => item.id !== listing.id)
+      previous.filter((item) => item.id !== action.listing.id)
     );
 
     setMessage('Annonce annulée. Tes cartes ont été rendues.');
+    setConfirmation(null);
     router.refresh();
+  }
+
+  function closeConfirmation() {
+    if (loading) return;
+    setConfirmation(null);
+    setConfirmationError('');
   }
 
   return (
@@ -232,6 +263,7 @@ export function MarketView({
         >
           Acheter
         </button>
+
         <button
           className={activeTab === 'sell' ? 'active' : ''}
           onClick={() => {
@@ -242,6 +274,7 @@ export function MarketView({
         >
           Vendre
         </button>
+
         <button
           className={activeTab === 'mine' ? 'active' : ''}
           onClick={() => {
@@ -296,7 +329,9 @@ export function MarketView({
                     <div className="market-card-image">
                       <button
                         type="button"
-                        onClick={() => router.push(`/market/carte/${listing.card_id}`)}
+                        onClick={() =>
+                          router.push(`/market/carte/${listing.card_id}`)
+                        }
                         aria-label={`Voir la fiche de ${listing.card.name}`}
                         style={{
                           border: 'none',
@@ -315,9 +350,10 @@ export function MarketView({
                           <span>🃏</span>
                         )}
                       </button>
-                    
+
                       <span className={`market-rarity ${listing.card.rarity}`}>
-                        {rarityLabels[listing.card.rarity] ?? listing.card.rarity}
+                        {rarityLabels[listing.card.rarity] ??
+                          listing.card.rarity}
                       </span>
                     </div>
 
@@ -325,7 +361,9 @@ export function MarketView({
                       <h3>
                         <button
                           type="button"
-                          onClick={() => router.push(`/market/carte/${listing.card_id}`)}
+                          onClick={() =>
+                            router.push(`/market/carte/${listing.card_id}`)
+                          }
                           style={{
                             border: 'none',
                             background: 'transparent',
@@ -340,12 +378,15 @@ export function MarketView({
                           {listing.card.name}
                         </button>
                       </h3>
+
                       <p className="market-seller">
                         Vendeur : @{listing.seller_username || 'Joueur'}
                       </p>
 
                       <div className="market-price">
-                        <strong>{listing.unit_price.toLocaleString('fr-FR')}</strong>
+                        <strong>
+                          {listing.unit_price.toLocaleString('fr-FR')}
+                        </strong>
                         <span>pièces / carte</span>
                       </div>
 
@@ -372,6 +413,7 @@ export function MarketView({
                             }))
                           }
                         />
+
                         <button
                           onClick={() => buyListing(listing)}
                           disabled={loading === listing.id}
@@ -381,8 +423,11 @@ export function MarketView({
                       </div>
 
                       <p className="market-total">
-                        Total : {(amount * listing.unit_price).toLocaleString('fr-FR')} pièces
+                        Total :{' '}
+                        {(amount * listing.unit_price).toLocaleString('fr-FR')}{' '}
+                        pièces
                       </p>
+
                       <MarketPriceChart
                         points={priceHistory.filter(
                           (point) => point.card_id === listing.card_id
@@ -493,7 +538,9 @@ export function MarketView({
                 onClick={createListing}
                 disabled={loading === 'create'}
               >
-                {loading === 'create' ? 'Publication...' : 'Publier mon annonce'}
+                {loading === 'create'
+                  ? 'Publication...'
+                  : 'Publier mon annonce'}
               </button>
 
               <button
@@ -541,7 +588,9 @@ export function MarketView({
                     <strong>
                       <button
                         type="button"
-                        onClick={() => router.push(`/market/carte/${listing.card_id}`)}
+                        onClick={() =>
+                          router.push(`/market/carte/${listing.card_id}`)
+                        }
                         style={{
                           border: 'none',
                           background: 'transparent',
@@ -556,7 +605,10 @@ export function MarketView({
                       </button>
                     </strong>
                     <span>{listing.quantity} carte(s)</span>
-                    <span>{listing.unit_price.toLocaleString('fr-FR')} pièces / carte</span>
+                    <span>
+                      {listing.unit_price.toLocaleString('fr-FR')} pièces /
+                      carte
+                    </span>
                   </div>
 
                   <button
@@ -580,6 +632,105 @@ export function MarketView({
           Consulte bientôt l&apos;évolution des prix de tes cartes sur 7 jours.
         </p>
       </div>
+
+      {confirmation &&
+        createPortal(
+          <div
+            className="game-confirm-overlay"
+            onClick={closeConfirmation}
+          >
+            <div
+              className="game-confirm-box"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="game-confirm-icon">
+                {confirmation.type === 'buy' ? '🛒' : '📦'}
+              </div>
+
+              <span className="game-confirm-kicker">
+                MMI POCKET EXCHANGE
+              </span>
+
+              <h2>
+                {confirmation.type === 'buy'
+                  ? 'Confirmer l’achat'
+                  : 'Annuler cette annonce ?'}
+              </h2>
+
+              <p className="game-confirm-description">
+                {confirmation.type === 'buy'
+                  ? 'Vérifie les détails de ton achat avant de continuer.'
+                  : 'Tes cartes seront retirées du marché et rendues dans ta collection.'}
+              </p>
+
+              <div className="game-confirm-card">
+                {confirmation.listing.card.image_url ? (
+                  <img
+                    src={confirmation.listing.card.image_url}
+                    alt={confirmation.listing.card.name}
+                  />
+                ) : (
+                  <div className="game-confirm-card-placeholder">🃏</div>
+                )}
+
+                <div>
+                  <strong>{confirmation.listing.card.name}</strong>
+                  <span>
+                    {confirmation.type === 'buy'
+                      ? `${confirmation.quantity} exemplaire(s)`
+                      : `${confirmation.listing.quantity} exemplaire(s) récupéré(s)`}
+                  </span>
+                </div>
+              </div>
+
+              {confirmation.type === 'buy' ? (
+                <div className="game-confirm-total">
+                  <span>Montant à payer</span>
+                  <strong>
+                    {confirmation.total.toLocaleString('fr-FR')} pièces
+                  </strong>
+                </div>
+              ) : (
+                <div className="game-confirm-total">
+                  <span>Prix actuel par carte</span>
+                  <strong>
+                    {confirmation.listing.unit_price.toLocaleString('fr-FR')}{' '}
+                    pièces
+                  </strong>
+                </div>
+              )}
+
+              {confirmationError && (
+                <p className="game-confirm-error">
+                  {confirmationError}
+                </p>
+              )}
+
+              <div className="game-confirm-actions">
+                <button
+                  className="game-confirm-cancel"
+                  onClick={closeConfirmation}
+                  disabled={!!loading}
+                >
+                  Retour
+                </button>
+
+                <button
+                  className="game-confirm-accept"
+                  onClick={confirmMarketAction}
+                  disabled={!!loading}
+                >
+                  {loading
+                    ? 'Chargement...'
+                    : confirmation.type === 'buy'
+                      ? 'Confirmer l’achat'
+                      : 'Confirmer l’annulation'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
