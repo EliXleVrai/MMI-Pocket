@@ -95,6 +95,12 @@ export function HomeDailyShop({
       setCoins(wallet.coins);
       setEnergy(wallet.energy);
       setMaxEnergy(wallet.max_energy);
+      
+      window.dispatchEvent(
+        new CustomEvent('mmi-wallet-updated', {
+          detail: { coins: wallet.coins },
+        })
+      );
     }
   }
 
