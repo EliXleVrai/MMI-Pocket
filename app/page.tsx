@@ -103,8 +103,7 @@ export default async function Home() {
       supabase
         .from('player_cards')
         .select('card_id, quantity')
-        .eq('user_id', user.id)
-        .gt('quantity', 0),
+        .eq('user_id', user.id),
 
       supabase
         .from('cards')
@@ -133,7 +132,7 @@ export default async function Home() {
     ownedUnique = owned.length;
 
     totalCopies = owned.reduce(
-      (sum, card) => sum + (card.quantity ?? 0),
+      (sum, card) => sum + Math.max(0, card.quantity ?? 0),
       0
     );
 
