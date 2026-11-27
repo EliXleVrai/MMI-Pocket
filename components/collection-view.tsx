@@ -15,6 +15,7 @@ export type OwnedCard = {
   genre: 'Terrain' | 'Personnage' | 'Objet';
   card_number: number | null;
   quantity: number;
+  discovered: boolean;
   buyback_price: number;
   extension: {
     id: string;
@@ -37,10 +38,9 @@ export function CollectionView({
 }: {
   cards: OwnedCard[];
 }) {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const [cards, setCards] = useState(initialCards);
-  const [soldOutCardIds, setSoldOutCardIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [rarityFilter, setRarityFilter] = useState('all');
   const [extensionFilter, setExtensionFilter] = useState('all');
@@ -52,8 +52,9 @@ export function CollectionView({
   const [sellError, setSellError] = useState('');
   const [sellMessage, setSellMessage] = useState('');
 
-  const isSoldOut = (card: OwnedCard) =>
-    card.quantity === 0 && soldOutCardIds.includes(card.id);
+  // Une carte est découverte si elle a déjà été obtenue.
+  const isDiscovered = (card: OwnedCard) =>
+    card.discovered || card.quantity > 0;
 
   const extensions = useMemo(() => {
     const unique = new Map<string, string>();
@@ -67,9 +68,10 @@ export function CollectionView({
     return Array.from(unique, ([id, name]) => ({ id, name }));
   }, [cards]);
 
-  const ownedTypes = cards.filter((card) => card.quantity > 0).length;
+  const ownedTypes = cards.filter(isDiscovered).length;
+
   const missingTypes = cards.filter(
-    (card) => card.quantity === 0 && !isSoldOut(card)
+    (card) => !isDiscovered(card)
   ).length;
 
   const totalCards = cards.reduce(
@@ -96,9 +98,7 @@ export function CollectionView({
       (card) => card.extension?.id === extension.id
     );
 
-    const owned = extensionCards.filter(
-      (card) => card.quantity > 0
-    ).length;
+    const owned = extensionCards.filter(isDiscovered).length;
 
     return {
       ...extension,
@@ -112,7 +112,7 @@ export function CollectionView({
 
   const filteredCards = useMemo(() => {
     return cards.filter((card) => {
-      const soldOut = soldOutCardIds.includes(card.id);
+      const discovered = card.discovered || card.quantity > 0;
 
       const matchesSearch =
         card.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -129,10 +129,8 @@ export function CollectionView({
 
       const matchesStatus =
         statusFilter === 'all' ||
-        (statusFilter === 'owned' &&
-          (card.quantity > 0 || soldOut)) ||
-        (statusFilter === 'missing' &&
-          card.quantity === 0 && !soldOut) ||
+        (statusFilter === 'owned' && discovered) ||
+        (statusFilter === 'missing' && !discovered) ||
         (statusFilter === 'duplicates' && card.quantity > 1);
 
       return (
@@ -144,7 +142,6 @@ export function CollectionView({
     });
   }, [
     cards,
-    soldOutCardIds,
     search,
     rarityFilter,
     extensionFilter,
@@ -194,18 +191,14 @@ export function CollectionView({
 
     const updatedQuantity = selectedCard.quantity - sellQuantity;
 
-    if (updatedQuantity === 0) {
-      setSoldOutCardIds((previous) =>
-        previous.includes(selectedCard.id)
-          ? previous
-          : [...previous, selectedCard.id]
-      );
-    }
-
     setCards((previousCards) =>
       previousCards.map((card) =>
         card.id === selectedCard.id
-          ? { ...card, quantity: updatedQuantity }
+          ? {
+              ...card,
+              quantity: updatedQuantity,
+              discovered: true,
+            }
           : card
       )
     );
@@ -216,7 +209,11 @@ export function CollectionView({
 
     setSelectedCard((previous) =>
       previous
-        ? { ...previous, quantity: updatedQuantity }
+        ? {
+            ...previous,
+            quantity: updatedQuantity,
+            discovered: true,
+          }
         : null
     );
 
@@ -407,8 +404,8 @@ export function CollectionView({
       ) : (
         <div className="collection-grid">
           {filteredCards.map((card) => {
-            const soldOut = isSoldOut(card);
-            const missing = card.quantity === 0 && !soldOut;
+            const discovered = isDiscovered(card);
+            const missing = !discovered;
 
             return (
               <button
@@ -436,7 +433,7 @@ export function CollectionView({
 
                   {missing ? (
                     <span className="collection-missing-label">?</span>
-                  ) : soldOut ? (
+                  ) : card.quantity === 0 ? (
                     <span className="collection-owned-label">0</span>
                   ) : (
                     <span className="collection-owned-label">✓</span>
@@ -469,11 +466,11 @@ export function CollectionView({
                     {card.extension?.name ?? 'Extension inconnue'}
                   </span>
 
-                  {soldOut && (
+                  {discovered && card.quantity === 0 && (
                     <small>0 copie</small>
                   )}
 
-                  {card.card_number !== null && (
+                  {discovered && card.card_number !== null && (
                     <small>N° {card.card_number}</small>
                   )}
                 </div>
@@ -496,8 +493,7 @@ export function CollectionView({
               role="dialog"
               aria-modal="true"
               aria-label={
-                selectedCard.quantity > 0 ||
-                isSoldOut(selectedCard)
+                isDiscovered(selectedCard)
                   ? `Détail de ${selectedCard.name}`
                   : 'Carte inconnue'
               }
@@ -513,14 +509,13 @@ export function CollectionView({
 
               <div className="collection-modal-art">
                 <div className="collection-modal-art-label">
-                  {selectedCard.quantity > 0 ||
-                  isSoldOut(selectedCard)
+                  {isDiscovered(selectedCard)
                     ? 'CARTE DÉCOUVERTE'
                     : 'CARTE À DÉCOUVRIR'}
                 </div>
 
                 <div className="collection-modal-image">
-                  {selectedCard.image_url ? (
+                  {isDiscovered(selectedCard) && selectedCard.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={selectedCard.image_url}
@@ -532,14 +527,12 @@ export function CollectionView({
                     </div>
                   )}
 
-                  {selectedCard.quantity === 0 &&
-                    !isSoldOut(selectedCard) && (
-                      <span className="collection-missing-label">?</span>
-                    )}
+                  {!isDiscovered(selectedCard) && (
+                    <span className="collection-missing-label">?</span>
+                  )}
                 </div>
 
-                {(selectedCard.quantity > 0 ||
-                  isSoldOut(selectedCard)) && (
+                {isDiscovered(selectedCard) && (
                   <div className="collection-modal-art-footer">
                     <span>
                       {selectedCard.extension?.name ??
@@ -565,14 +558,12 @@ export function CollectionView({
                     className={`collection-modal-owned ${
                       selectedCard.quantity > 0
                         ? 'is-owned'
-                        : isSoldOut(selectedCard)
-                          ? 'is-missing'
-                          : 'is-missing'
+                        : 'is-missing'
                     }`}
                   >
                     {selectedCard.quantity > 0
                       ? '✓ Obtenue'
-                      : isSoldOut(selectedCard)
+                      : isDiscovered(selectedCard)
                         ? '0 copie'
                         : '? Manquante'}
                   </span>
@@ -587,22 +578,19 @@ export function CollectionView({
                 </div>
 
                 <h2>
-                  {selectedCard.quantity > 0 ||
-                  isSoldOut(selectedCard)
+                  {isDiscovered(selectedCard)
                     ? selectedCard.name
                     : 'Carte inconnue'}
                 </h2>
 
                 <p className="collection-modal-description">
-                  {selectedCard.quantity > 0 ||
-                  isSoldOut(selectedCard)
+                  {isDiscovered(selectedCard)
                     ? selectedCard.description ||
                       'Aucune description disponible.'
                     : 'Découvre cette carte pour révéler ses informations.'}
                 </p>
 
-                {selectedCard.quantity > 0 ||
-                isSoldOut(selectedCard) ? (
+                {isDiscovered(selectedCard) ? (
                   <>
                     <div className="collection-modal-details">
                       <span>
