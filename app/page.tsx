@@ -466,7 +466,13 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="home-progress-card">
+        <div
+          className={`home-progress-card ${
+            user && progress === 100 && totalCards > 0
+              ? 'home-progress-completed'
+              : ''
+          }`}
+        >
           <div className="home-progress-copy">
             <div>
               <strong>{user ? `${progress}%` : 'Bienvenue !'}</strong>
