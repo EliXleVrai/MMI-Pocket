@@ -84,7 +84,8 @@ export default async function CollectionPage() {
         genre: card.genre ?? 'Personnage',
         card_number: card.card_number,
         quantity: ownedQuantities.get(card.id) ?? 0,
-        discovered: ownedQuantities.has(card.id),
+        discovered: ownedQuantities.has(card.id) &&
+          ownedQuantities.get(card.id) !== null,
         buyback_price: card.buyback_price ?? 0,
         extension: extension
           ? {
