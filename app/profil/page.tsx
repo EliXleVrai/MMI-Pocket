@@ -72,11 +72,6 @@ export default async function ProfilePage() {
       </section>
 
       <section className="profile-card">
-        <h2>Comptes connectés</h2>
-        <ProfileAuthLinks initialProviders={linkedProviders} />
-      </section>
-
-      <section className="profile-card">
         <h2>Informations du compte</h2>
 
         <p><strong>Pseudo :</strong> {profile.username}</p>
@@ -106,6 +101,11 @@ export default async function ProfilePage() {
           <p>⚡ Énergie</p>
           <strong>{wallet?.energy ?? 0}</strong>
         </div>
+      </section>
+
+      <section className="profile-card">
+        <h2>Comptes connectés</h2>
+        <ProfileAuthLinks initialProviders={linkedProviders} />
       </section>
     </main>
   );
