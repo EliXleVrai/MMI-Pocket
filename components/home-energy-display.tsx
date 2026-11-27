@@ -26,6 +26,29 @@ export function HomeEnergyDisplay({
   const [countdown, setCountdown] = useState('');
 
   useEffect(() => {
+    function handleWalletUpdate(event: Event) {
+      const customEvent = event as CustomEvent<{
+        energy: number;
+        maxEnergy: number;
+      }>;
+  
+      if (typeof customEvent.detail?.energy === 'number') {
+        setEnergy(customEvent.detail.energy);
+      }
+  
+      if (typeof customEvent.detail?.maxEnergy === 'number') {
+        setMaxEnergy(customEvent.detail.maxEnergy);
+      }
+    }
+  
+    window.addEventListener('mmi-wallet-updated', handleWalletUpdate);
+  
+    return () => {
+      window.removeEventListener('mmi-wallet-updated', handleWalletUpdate);
+    };
+  }, []);
+  
+  useEffect(() => {
     let active = true;
 
     async function refreshEnergy() {
