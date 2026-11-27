@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ProfileEditForm } from '@/components/profile-edit-form';
 import { ProfileAuthLinks } from '@/components/profile-auth-links';
+import DeleteAccountButton from '@/components/delete-account-button';
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -63,15 +64,6 @@ export default async function ProfilePage() {
       </section>
 
       <section className="profile-card">
-        <h2>Modifier mon profil</h2>
-
-        <ProfileEditForm
-          initialUsername={profile.username}
-          initialDisplayName={profile.display_name || ''}
-        />
-      </section>
-
-      <section className="profile-card">
         <h2>Informations du compte</h2>
 
         <p><strong>Pseudo :</strong> {profile.username}</p>
@@ -104,8 +96,27 @@ export default async function ProfilePage() {
       </section>
 
       <section className="profile-card">
+        <h2>Modifier mon profil</h2>
+
+        <ProfileEditForm
+          initialUsername={profile.username}
+          initialDisplayName={profile.display_name || ''}
+        />
+      </section>
+
+      <section className="profile-card">
         <h2>Comptes connectés</h2>
         <ProfileAuthLinks initialProviders={linkedProviders} />
+      </section>
+
+      <section className="profile-card">
+        <h2>Zone dangereuse</h2>
+
+        <p>
+          La suppression de ton compte est définitive et irréversible.
+        </p>
+
+        <DeleteAccountButton />
       </section>
     </main>
   );
