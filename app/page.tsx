@@ -475,7 +475,13 @@ export default async function Home() {
         >
           <div className="home-progress-copy">
             <div>
-              <strong>{user ? `${progress}%` : 'Bienvenue !'}</strong>
+              <strong className={
+                user && totalCards > 0 && progress === 100
+                  ? 'progress-percentage-completed'
+                  : ''
+              }>
+                {user ? `${progress}%` : 'Bienvenue !'}
+              </strong>
               <span>
                 {user
                   ? 'de la collection complétée'
