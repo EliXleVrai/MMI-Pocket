@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { HomeEnergyDisplay } from '@/components/home-energy-display';
 import { HomeDailyShop } from '@/components/home-daily-shop';
+import { HomeCoinsDisplay } from '@/components/home-coins-display';
 
 const rarityLabels: Record<string, string> = {
   common: 'Commune',
@@ -411,21 +412,20 @@ export default async function Home() {
           </article>
         )}
 
-        <article className="home-resource-card money">
-          <div className="home-resource-icon">
-            <Coins size={21} />
-          </div>
-          <div>
-            <span>PIÈCES</span>
-            <strong>
-              {user ? coins.toLocaleString('fr-FR') : '—'}
-            </strong>
-            <small>Ton portefeuille</small>
-          </div>
-          <Link href="/market" aria-label="Aller au marché">
-            <ArrowRight size={18} />
-          </Link>
-        </article>
+        {user ? (
+          <HomeCoinsDisplay initialCoins={coins} />
+        ) : (
+          <article className="home-resource-card money">
+            <div className="home-resource-icon">
+              <Coins size={21} />
+            </div>
+            <div>
+              <span>PIÈCES</span>
+              <strong>—</strong>
+              <small>Connecte-toi pour commencer</small>
+            </div>
+          </article>
+        )}
 
         <article className="home-resource-card cards">
           <div className="home-resource-icon">
