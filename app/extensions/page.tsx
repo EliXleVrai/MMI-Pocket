@@ -49,7 +49,6 @@ export default async function ExtensionsPage() {
       .from('player_cards')
       .select('card_id, quantity')
       .eq('user_id', user.id)
-      .gt('quantity', 0),
   ]);
 
   if (!profile?.username) redirect('/choisir-pseudo');
@@ -159,7 +158,13 @@ export default async function ExtensionsPage() {
         <div className="extensions-overview-progress">
           <div className="extensions-overview-progress-top">
             <span>Progression générale</span>
-            <strong>{globalPercentage}%</strong>
+            <strong className={
+              totalCards > 0 && globalPercentage === 100
+                ? 'progress-percentage-completed'
+                : ''
+            }>
+              {globalPercentage}%
+            </strong>
           </div>
 
           <div className="extensions-progress-track">
@@ -255,7 +260,13 @@ export default async function ExtensionsPage() {
                   </div>
 
                   <div>
-                    <strong>{extension.percentage}%</strong>
+                    <strong className={
+                      extension.totalCount > 0 && extension.percentage === 100
+                        ? 'progress-percentage-completed'
+                        : ''
+                    }>
+                      {extension.percentage}%
+                    </strong>
                     <span>Complétée</span>
                   </div>
                 </div>
