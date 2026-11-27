@@ -44,7 +44,6 @@ export default async function CollectionPage() {
       .from('player_cards')
       .select('card_id, quantity')
       .eq('user_id', user.id)
-      .gt('quantity', 0),
   ]);
 
   if (!profileResult.data?.username) {
@@ -85,6 +84,7 @@ export default async function CollectionPage() {
         genre: card.genre ?? 'Personnage',
         card_number: card.card_number,
         quantity: ownedQuantities.get(card.id) ?? 0,
+        discovered: ownedQuantities.has(card.id),
         buyback_price: card.buyback_price ?? 0,
         extension: extension
           ? {
