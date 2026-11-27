@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { HomeEnergyDisplay } from '@/components/home-energy-display';
+import { HomeDailyShop } from '@/components/home-daily-shop';
 
 const rarityLabels: Record<string, string> = {
   common: 'Commune',
@@ -446,7 +447,15 @@ export default async function Home() {
           </Link>
         </article>
       </section>
-
+      
+      {user && (
+        <HomeDailyShop
+          initialCoins={coins}
+          initialEnergy={energy}
+          initialMaxEnergy={maxEnergy}
+        />
+      )}
+      
       <section className="home-progress-section">
         <div className="home-section-heading">
           <div>
